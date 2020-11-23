@@ -23,9 +23,9 @@
 #define PRODUCT_ID      0x5004
 #define DEVICE_VER      0x0001
 
-#define MANUFACTURER    Redragon
-#define PRODUCT         K556
-#define DESCRIPTION     K556 Devarajas
+#define MANUFACTURER    "Redragon"
+#define PRODUCT         "K556"
+#define DESCRIPTION     "K556 Devarajas"
 
 /* key matrix size */
 #define MATRIX_ROWS 6
