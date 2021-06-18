@@ -6,6 +6,7 @@ on:
     - sn32
     - sn32_openrgb
     - sn32_openrgb_new
+    - k87_backlight_test
   pull_request:
     branches:
     - sn32

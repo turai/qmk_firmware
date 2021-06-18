@@ -74,8 +74,17 @@ static void init_pins(void) {
 }
 #else
 
+void rgbInit(uint8_t devid);
+void i2cInit(void);
+void rgbWhite(uint8_t devid, uint8_t* c);
+void rgbChange(uint8_t devid, const uint8_t* states);
+bool i2cBusWriteByte(int value);
+char i2cWriteReg(uint8_t devid, uint8_t reg, uint8_t data);
+
 static void init_pins(void) {
 
+    i2cInit();
+    
     //  Unselect ROWs
     for (uint8_t x = 0; x < MATRIX_ROWS; x++) {
         setPinOutput(row_pins[x]);
@@ -236,6 +245,7 @@ void matrix_init(void) {
 }
 
 uint8_t matrix_scan(void) {
+    rgbInit(0xE8);
     matrix_changed = false;
     for (uint8_t current_col = 0; current_col < MATRIX_COLS; current_col++) {
         for (uint8_t row_index = 0; row_index < MATRIX_ROWS; row_index++) {
