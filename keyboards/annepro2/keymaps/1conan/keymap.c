@@ -26,11 +26,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______,  MO(_FN2), _______,                            _______,                            _______, _______, _______, _______
     ),
     [_FN2] = KEYMAP(
-        KC_GRV,   KC_AP2_BT1, KC_AP2_BT2, KC_AP2_BT3, KC_AP2_BT4, _______, _______, _______, KC_AP_LED_OFF, KC_AP_LED_ON, KC_AP_LED_NEXT_INTENSITY, KC_AP_LED_SPEED, _______, _______,
-        _______,  _______,    KC_UP,      _______,    _______,    _______, _______, _______, KC_UP,         _______,      KC_PSCR,                  KC_HOME,         KC_END,  _______,
-        MO(_FN1), KC_LEFT,    KC_DOWN,    KC_RGHT,    _______,    _______, _______, KC_LEFT, KC_DOWN,       KC_RGHT,      KC_PGUP,                  KC_PGDN,                  _______,
-        _______,  KC_VOLD,    KC_VOLU,    KC_MUTE,    _______,    _______, _______, _______, _______,       KC_INS,       KC_DEL,                                             _______,
-        KC_MPRV,  MO(_FN2),   KC_MNXT,                                     KC_MPLY,                                       _______,                  _______,         _______, _______
+        KC_GRV,   KC_AP2_BT1, KC_AP2_BT2, KC_AP2_BT3, KC_AP2_BT4, KC_AP2_USB, _______, _______, KC_AP_LED_OFF, KC_AP_LED_ON, KC_AP_LED_NEXT_INTENSITY, KC_AP_LED_SPEED, _______, _______,
+        _______,  _______,    KC_UP,      _______,    _______,    _______,    _______, _______, KC_UP,         _______,      KC_PSCR,                  KC_HOME,         KC_END,  _______,
+        MO(_FN1), KC_LEFT,    KC_DOWN,    KC_RGHT,    _______,    _______,    _______, KC_LEFT, KC_DOWN,       KC_RGHT,      KC_PGUP,                  KC_PGDN,                  _______,
+        _______,  KC_VOLD,    KC_VOLU,    KC_MUTE,    _______,    _______,    _______, _______, _______,       KC_INS,       KC_DEL,                                             _______,
+        KC_MPRV,  MO(_FN2),   KC_MNXT,                                        KC_MPLY,                                       _______,                  _______,         _______, _______
     ),
 };
 
