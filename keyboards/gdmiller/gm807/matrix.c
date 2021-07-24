@@ -84,20 +84,6 @@ static void init_pins(void) {
         setPinOutput(led_row_pins[x]);
         writePinLow(led_row_pins[x]);
     }
-
-    // turn off LEDs on two buttons near encoder
-    setPinOutput(LED_K4);
-    writePinLow(LED_K4);
-    setPinOutput(LED_K5);
-    writePinLow(LED_K5);
-
-    // Turn off LED on the USB PORT of the USB hub
-    setPinOutput(LED_USB_PORT);
-    writePinLow(LED_USB_PORT);
-
-    // Turn off output for encoder LEDs
-    setPinOutput(LED_ENCODER);
-    writePinLow(LED_ENCODER);
 }
 
 #ifndef INTERRUPT_SCAN

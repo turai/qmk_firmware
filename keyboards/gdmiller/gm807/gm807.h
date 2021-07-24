@@ -1,4 +1,5 @@
 #pragma once
+#include "quantum.h"
 
 #define XXX KC_NO
 
@@ -20,3 +21,7 @@
     {k40, XXX, k42, k43, k44, k45, k46, k47, k48, k49, k4a, k4b, XXX, k4c, XXX, k4d, XXX}, \
     {k50, k51, k52, XXX, XXX, XXX, k56, XXX, XXX, XXX, k5a, k5b, k5c, k5d, k5e, k5f, k5g}  \
 }
+
+enum GM807_keycodes {
+    KEY_USB_LED = SAFE_RANGE,
+};
