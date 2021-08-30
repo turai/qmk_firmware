@@ -1,6 +1,9 @@
 # project specific files
 SRC += ../../../drivers/sn32/matrix_sn32f248b.c
 SRC += config_led.c
+SRC += bt/spi.c
+SRC += bt/driver.c
+SRC += bt/bt.c
 
 ## chip/board settings
 # - the next two should match the directories in
