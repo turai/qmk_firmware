@@ -1,4 +1,4 @@
-/* Copyright 2020 Adam Honse <calcprogrammer1@gmail.com> 
+/* Copyright 2020 Adam Honse <calcprogrammer1@gmail.com>
  * Copyright 2020 Dimitris Mantzouranis <d3xter93@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,9 +24,9 @@
 #define PRODUCT_ID      0x024F
 #define DEVICE_VER      0x0001
 
-#define MANUFACTURER    "Keychron"
-#define PRODUCT         "Keychron C1"
-#define DESCRIPTION     "C1 RGB Hotswap"
+#define MANUFACTURER    Keychron
+#define PRODUCT         Keychron C1
+#define DESCRIPTION     C1 RGB Hotswap
 
 /* key matrix size */
 #define MATRIX_ROWS 6
@@ -43,6 +43,10 @@
 /* Debounce reduces chatter (unintended double-presses) - set 0 if debouncing is not needed */
 #define DEBOUNCE 0
 
-//#define FORCE_NKRO
+/* LED Status indicators */
+#define LED_CAPS_LOCK_PIN B10
+#define LED_SCROLL_LOCK_PIN B11 //labled Mac on KB since no Scroll Lock
+#define LED_NUM_LOCK_PIN B12 //labled Windows on KB since no Numpad
+#define LED_PIN_ON_STATE  1
 
 #include "config_led.h"

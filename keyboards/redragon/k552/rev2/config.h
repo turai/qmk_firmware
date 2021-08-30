@@ -31,7 +31,7 @@
 #define MATRIX_ROWS 6
 #define MATRIX_COLS 17
 
-#define DIODE_DIRECTION COL2ROW
+#define DIODE_DIRECTION ROW2COL
 
 #define MATRIX_COL_PINS { A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, B0, B1 }
 #define MATRIX_ROW_PINS { C15, D11, D10, D9, D8, D7 }
@@ -43,5 +43,9 @@
 //#define LOCKING_SUPPORT_ENABLE
 /* Locking resynchronize hack */
 //#define LOCKING_RESYNC_ENABLE
+
+#define LED_CAPS_LOCK_PIN   B14
+#define LED_SCROLL_LOCK_PIN B15
+#define LED_PIN_ON_STATE    0
 
 #include "config_led.h"

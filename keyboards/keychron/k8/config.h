@@ -1,4 +1,4 @@
-/* Copyright 2020 Adam Honse <calcprogrammer1@gmail.com> 
+/* Copyright 2020 Adam Honse <calcprogrammer1@gmail.com>
  * Copyright 2020 Dimitris Mantzouranis <d3xter93@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
