@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "quantum.h"
+#include "../../gm807.h"
 #include QMK_KEYBOARD_H
 
 // Defines names for use in layer keycodes and the keymap
@@ -23,12 +24,13 @@ enum layer_names {
     _FN,
 };
 
-enum my_keycodes {
-    USB_PORT_LED = SAFE_RANGE,
-};
-
-#define _BTN KC_NO
-#define PRT_LED USB_PORT_LED
+#define _BTN    KC_NO
+#define PRT_LED KEY_USB_LED
+#define BT_TOG KEY_BT_TOGGLE
+#define BT_PRO1 KEY_BT_PROF1
+#define BT_PRO2 KEY_BT_PROF2
+#define BT_PRO3 KEY_BT_PROF3
+#define BT_PAIR KEY_BT_PAIR
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_BASE] = LAYOUT(
@@ -50,7 +52,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_FN] = LAYOUT(
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,             _______, _______, PRT_LED, \
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,    _______, _______, _______, \
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,    _______, _______, _______, \
+        BT_TOG,  BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, BT_PAIR, _______, _______, _______,    _______, _______, _______, \
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,    _______, _______,          \
         _______,          _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,             _______,          \
         _______, _______, _______,                            _______,                            _______, _______, _______, _______,    _______, _______, _______  \
@@ -84,7 +86,7 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
-        case USB_PORT_LED:
+        case KEY_USB_LED:
             if (record->event.pressed) {
                 writePin(LED_USB_PORT, !readPin(LED_USB_PORT));
             }

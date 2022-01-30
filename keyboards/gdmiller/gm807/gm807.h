@@ -24,4 +24,12 @@
 
 enum GM807_keycodes {
     KEY_USB_LED = SAFE_RANGE,
+    KEY_BT_TOGGLE,
+    KEY_BT_MODE,
+    KEY_USB_MODE,
+    KEY_BT_PAIR,
+    KEY_BT_PROF1,
+    KEY_BT_PROF2,
+    KEY_BT_PROF3,
+    GM807_SAFE_RANGE,
 };

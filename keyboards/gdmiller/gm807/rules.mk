@@ -1,6 +1,9 @@
 # project specific files
 SRC += ../../../drivers/led/sn32/matrix_sn32f24xx.c
 SRC += config_led.c
+SRC += bt/spi.c
+SRC += bt/iton.c
+SRC += bt/driver.c
 
 # MCU name
 MCU = SN32F248BF
@@ -13,7 +16,7 @@ MAGIC_ENABLE 			= yes
 MAGIC_KEYCODE_ENABLE 	= yes
 ENCODER_ENABLE 			= yes
 BOOTMAGIC_ENABLE 		= yes	# Virtual DIP switch configuration
-MOUSEKEY_ENABLE 		= yes   # Mouse keys
+MOUSEKEY_ENABLE 		= no    # Mouse keys
 EXTRAKEY_ENABLE 		= yes	# Audio control and System control
 CONSOLE_ENABLE 			= no    # Console for debug
 COMMAND_ENABLE 			= no    # Commands for debug and configuration

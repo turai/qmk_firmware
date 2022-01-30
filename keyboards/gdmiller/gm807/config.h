@@ -46,3 +46,7 @@
 #include "config_led.h"
 
 #define TAP_CODE_DELAY 10
+
+// Bluetooth
+// #define ITON_BT5 // Uncomment on BT5.0 keyboards
+#define BT_MAX_PROFILES 3
