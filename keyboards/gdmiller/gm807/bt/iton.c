@@ -114,6 +114,16 @@ void iton_os(iton_os_type_t type) {
     iton_control(0x51, type);
 }
 
-// TODO: Implement
-// void iton_change_name() {
-// }
+// Not Tested
+void iton_change_name(char *name, uint8_t len) {
+    uint16_t checksum = 0;
+    for (uint8_t i = 0; i < len; i++) {
+        checksum += name[i];
+    }
+    spi_send_init(len + 4);
+    spi_send_byte(ITON_MODIFY_NAME);
+    spi_send_bytes(&checksum, 2);
+    spi_send_byte(len);
+    spi_send_bytes(name, strlen(name));
+    spi_send_end();
+}

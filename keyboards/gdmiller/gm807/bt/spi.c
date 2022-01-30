@@ -61,4 +61,3 @@ void spi_send_end() {
     while (!SN_SPI0->STAT_b.TX_EMPTY);
     writePinLow(SPI_IRQ_PIN);
 }
-
