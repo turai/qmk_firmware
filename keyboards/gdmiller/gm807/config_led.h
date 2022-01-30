@@ -35,8 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RGB_MATRIX_STARTUP_VAL 0
 #define RGB_MATRIX_STARTUP_SPD 0
 #define RGB_MATRIX_LED_FLUSH_LIMIT 32
-#define LED_CAPS_LOCK_PIN D6
 
+#define LED_CAPS_LOCK_PIN D6
 #define LED_K4 A6
 #define LED_K5 A7
 #define LED_USB_PORT D4
