@@ -1,7 +1,7 @@
 /*
 Copyright 2020 Adam Honse <calcprogrammer1@gmail.com>
 Copyright 2020 Dimitris Mantzouranis <d3xter93@gmail.com>
-
+Copyright 2022 1Conan <me@1conan.com>
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or
@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define LED_K5 A7
 #define LED_USB_PORT D4
 
-// LEDs and Resistor unpopulated on my keyboard
+// LEDs and Resistor unpopulated
 // Resistor pad is near the BT module
 // LEDs: LED6-10
 // Resistor: RA42 (Value: ? (probably an 82Ω))
