@@ -5,6 +5,8 @@ typedef enum {
     ITON_OS_WIN = 0x75,
 } iton_os_type_t;
 
+void iton_init(void);
+
 void iton_hid_report(uint8_t *data);
 void iton_nkro_report(uint8_t *data);
 void iton_consumer_report(uint16_t data);

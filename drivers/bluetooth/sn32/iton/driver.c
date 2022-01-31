@@ -16,10 +16,9 @@
 #include "iton.h"
 #include "ch.h"
 #include "hal.h"
-#include "host.h"
 #include "host_driver.h"
 #include "report.h"
-#include "driver.h"
+#include "iton_driver.h"
 #include "quantum.h"
 
 static uint8_t iton_bt_leds(void) {

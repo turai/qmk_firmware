@@ -17,11 +17,11 @@
 #include "hal.h"
 #include "gm807.h"
 #include "config_led.h"
-#include "bt/spi.h"
-#include "bt/iton.h"
-#include "bt/driver.h"
+#include "SPI.h"
+#include "../../../drivers/bluetooth/sn32/iton/iton.h"
+#include "../../../drivers/bluetooth/sn32/iton/iton_driver.h"
 
-void __attribute__((noinline)) keyboard_pre_init_kb(void)  {
+void keyboard_pre_init_kb(void)  {
     // turn off LEDs on two buttons near encoder
     setPinOutput(LED_K4);
     writePinLow(LED_K4);
@@ -36,16 +36,13 @@ void __attribute__((noinline)) keyboard_pre_init_kb(void)  {
     setPinOutput(LED_ENCODER);
     writePinLow(LED_ENCODER);
 
-    // Bluetooth
-    setPinOutput(SPI_IRQ_PIN);
-    setPinInput(SPI_INT_PIN);
-
-    spi_init();
+    SPI0_Init();
+    iton_init();
 
     keyboard_pre_init_user();
 }
 
-bool __attribute__((noinline)) process_record_kb(uint16_t keycode, keyrecord_t *record) {
+bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
         switch(keycode) {
             case KEY_USB_LED:

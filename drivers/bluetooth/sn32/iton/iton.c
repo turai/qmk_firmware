@@ -15,9 +15,21 @@
  */
 #include <stdint.h>
 #include <string.h>
-#include "spi.h"
+#include "ch.h"
+#include "hal.h"
+#include "gpio.h"
+#include "SPI.h"
 #include "iton.h"
-#include "../config.h"
+
+#include "config.h"
+
+#ifndef ITON_IRQ_PIN
+#define ITON_IRQ_PIN A0
+#endif
+
+#ifndef ITON_INT_PIN
+#define ITON_INT_PIN A1
+#endif
 
 #ifndef BT_MAX_PROFILES
 #define BT_MAX_PROFILES 3
@@ -41,53 +53,72 @@
 #define ITON_MODIFY_NAME 0xA7
 #endif
 
+void iton_init() {
+    setPinOutput(ITON_IRQ_PIN);
+    writePinLow(ITON_IRQ_PIN);
+    setPinInput(ITON_INT_PIN);
+}
+
+void iton_send_init(void) {
+    writePinHigh(ITON_IRQ_PIN);
+}
+void iton_send_end(void) {
+    writePinLow(ITON_IRQ_PIN);
+}
+
 void iton_hid_report(uint8_t *data) {
-    spi_send_init(9); // 1 byte + 8 bytes
-    spi_send_byte(ITON_HID_REPORT);
-    spi_send_bytes(data, 8);
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_HID_REPORT);
+    SPI0_Write(data, 8);
+    SPI0_Write_End();
+    iton_send_end();
 }
 
 void iton_nkro_report(uint8_t *data) {
-    spi_send_init(17); // 1 byte + 16 bytes
-    spi_send_byte(ITON_NKRO_REPORT);
-    spi_send_bytes(data, 16);
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_NKRO_REPORT);
+    SPI0_Write(data, 16);
+    SPI0_Write_End();
+    iton_send_end();
 }
 
 void iton_consumer_report(uint16_t data) {
-    spi_send_init(3); // 1 byte + 2 bytes
-    spi_send_byte(ITON_CONSUMER_REPORT);
-    spi_send_byte((uint8_t)(data >> 8));
-    spi_send_byte((uint8_t)data);
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_CONSUMER_REPORT);
+    SPI0_Write1((uint8_t)(data >> 8));
+    SPI0_Write1((uint8_t)data);
+    SPI0_Write_End();
+    iton_send_end();
 }
 
 // 0xA8 - Shutdown
 // 0xA9 - Sleep
 // 0xAA - Wake
 void iton_system_report(uint8_t data) {
-    spi_send_init(2); // 1 byte + 1 byte
-    spi_send_byte(ITON_SYSTEM_REPORT);
-    spi_send_byte(data);
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_SYSTEM_REPORT);
+    SPI0_Write1(data);
+    SPI0_Write_End();
+    iton_send_end();
 }
 
 // 0xA3 - Fn keypress
 // 0x00 - Fn key release
 void iton_fn_report(uint8_t data) {
-    spi_send_init(2); // 1 byte + 1 byte
-    spi_send_byte(ITON_FN_REPORT);
-    spi_send_byte(data);
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_FN_REPORT);
+    SPI0_Write1(data);
+    SPI0_Write_End();
+    iton_send_end();
 }
 
 void iton_control(uint8_t cmd, uint8_t data) {
-    spi_send_init(3);
-    spi_send_byte(ITON_CONTROL);
-    spi_send_byte(cmd);
-    spi_send_byte(data);
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_CONTROL);
+    SPI0_Write1(cmd);
+    SPI0_Write1(data);
+    SPI0_Write_End();
+    iton_send_end();
 }
 
 void iton_mode_usb() {
@@ -126,10 +157,11 @@ void iton_change_name(char *name, uint8_t len) {
     for (uint8_t i = 0; i < len; i++) {
         checksum += name[i];
     }
-    spi_send_init(len + 4);
-    spi_send_byte(ITON_MODIFY_NAME);
-    spi_send_bytes((uint8_t *)&checksum, 2);
-    spi_send_byte(len);
-    spi_send_bytes((uint8_t *)name, strlen(name));
-    spi_send_end();
+    iton_send_init();
+    SPI0_Write1(ITON_MODIFY_NAME);
+    SPI0_Write((uint8_t *)&checksum, 2);
+    SPI0_Write1(len);
+    SPI0_Write((uint8_t *)name, strlen(name));
+    SPI0_Write_End();
+    iton_send_end();
 }
