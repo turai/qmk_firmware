@@ -26,5 +26,9 @@ void spi_send_end(void);
 #define	SPI_SPIEN_EN            1
 #define	SPI_FRESET_RESET_FIFO	3
 
+#ifndef SPI_IRQ_PIN
 #define SPI_IRQ_PIN A0
+#endif
+#ifndef SPI_INT_PIN
 #define SPI_INT_PIN A1
+#endif

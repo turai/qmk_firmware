@@ -1,15 +1,9 @@
-#include "../config.h"
 #include <stdint.h>
-
-#ifndef BT_MAX_PROFILES
-#define BT_MAX_PROFILES 3
-#endif
 
 typedef enum {
     ITON_OS_MAC = 0x74,
     ITON_OS_WIN = 0x75,
 } iton_os_type_t;
-
 
 void iton_hid_report(uint8_t *data);
 void iton_nkro_report(uint8_t *data);

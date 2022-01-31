@@ -13,9 +13,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include <stdint.h>
+#include <string.h>
 #include "spi.h"
 #include "iton.h"
+#include "../config.h"
 
+#ifndef BT_MAX_PROFILES
+#define BT_MAX_PROFILES 3
+#endif
 
 #ifdef ITON_BT5
 #define ITON_HID_REPORT 0x51
@@ -122,8 +128,8 @@ void iton_change_name(char *name, uint8_t len) {
     }
     spi_send_init(len + 4);
     spi_send_byte(ITON_MODIFY_NAME);
-    spi_send_bytes(&checksum, 2);
+    spi_send_bytes((uint8_t *)&checksum, 2);
     spi_send_byte(len);
-    spi_send_bytes(name, strlen(name));
+    spi_send_bytes((uint8_t *)name, strlen(name));
     spi_send_end();
 }
