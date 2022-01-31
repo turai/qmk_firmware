@@ -80,12 +80,6 @@ void iton_switch_driver() {
         iton_mode_usb();
         return;
     }
-    #ifdef NKRO_ENABLE
-    if (!keymap_config.nkro) {
-        // Allows more than 5 keys over bt
-        keymap_config.nkro = true;
-    }
-    #endif
     iton_mode_bt();
     last_driver = host_get_driver();
     host_set_driver(&iton_bt_driver);
