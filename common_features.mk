@@ -242,7 +242,7 @@ ifeq ($(strip $(RGBLIGHT_ENABLE)), yes)
 endif
 
 LED_MATRIX_ENABLE ?= no
-VALID_LED_MATRIX_TYPES := IS31FL3731 custom
+VALID_LED_MATRIX_TYPES := IS31FL3731 SN32F26x custom
 # TODO: IS31FL3733 IS31FL3737 IS31FL3741
 
 ifeq ($(strip $(LED_MATRIX_ENABLE)), yes)
@@ -269,10 +269,16 @@ endif
         SRC += is31fl3731-simple.c
         QUANTUM_LIB_SRC += i2c_master.c
     endif
+
+    ifeq ($(strip $(LED_MATRIX_DRIVER)), SN32F26x)
+        OPT_DEFS += -DSN32F26x
+        COMMON_VPATH += $(DRIVER_PATH)/led/sn32
+        SRC += led_matrix_sn32f26x.c
+    endif
 endif
 
 RGB_MATRIX_ENABLE ?= no
-VALID_RGB_MATRIX_TYPES := AW20216 IS31FL3731 IS31FL3733 IS31FL3737 IS31FL3741 CKLED2001 WS2812 SN32F24xB SN32F26x custom
+VALID_RGB_MATRIX_TYPES := AW20216 IS31FL3731 IS31FL3733 IS31FL3737 IS31FL3741 CKLED2001 WS2812 SN32F24xB custom
 
 ifeq ($(strip $(RGB_MATRIX_ENABLE)), yes)
     ifeq ($(filter $(RGB_MATRIX_DRIVER),$(VALID_RGB_MATRIX_TYPES)),)
@@ -349,12 +355,6 @@ endif
         OPT_DEFS += -DSN32F24xB
         COMMON_VPATH += $(DRIVER_PATH)/led/sn32
         SRC += rgb_matrix_sn32f24xb.c
-    endif
-
-    ifeq ($(strip $(RGB_MATRIX_DRIVER)), SN32F26x)
-        OPT_DEFS += -DSN32F26x
-        COMMON_VPATH += $(DRIVER_PATH)/led/sn32
-        SRC += rgb_matrix_sn32f26x.c
     endif
 
     ifeq ($(strip $(RGB_MATRIX_CUSTOM_KB)), yes)
@@ -717,7 +717,7 @@ ifeq ($(strip $(USBPD_ENABLE)), yes)
 endif
 
 BLUETOOTH_ENABLE ?= no
-VALID_BLUETOOTH_DRIVER_TYPES := AdafruitBLE RN42 custom
+VALID_BLUETOOTH_DRIVER_TYPES := AdafruitBLE RN42 ITON_BT custom
 ifeq ($(strip $(BLUETOOTH_ENABLE)), yes)
     ifeq ($(filter $(strip $(BLUETOOTH_DRIVER)),$(VALID_BLUETOOTH_DRIVER_TYPES)),)
         $(error "$(BLUETOOTH_DRIVER)" is not a valid Bluetooth driver type)
@@ -737,5 +737,13 @@ ifeq ($(strip $(BLUETOOTH_ENABLE)), yes)
     ifeq ($(strip $(BLUETOOTH_DRIVER)), RN42)
         OPT_DEFS += -DMODULE_RN42
         SRC += $(TMK_DIR)/protocol/serial_uart.c
+    endif
+
+	ifeq ($(strip $(BLUETOOTH_DRIVER)), ITON_BT)
+        OPT_DEFS += -DMODULE_ITON_BT
+        ifneq (,$(filter $(MCU_SERIES),SN32F240B))
+            OPT_DEFS += -DSN32_SPI_SLAVE_MODE -DSN32_SPI_TXFIFO_THRESHOLD=7
+        endif
+        SRC += $(DRIVER_PATH)/bluetooth/iton_bt.c
     endif
 endif
