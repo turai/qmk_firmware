@@ -167,7 +167,7 @@ void iton_bt_set_name(char *name) {
     }
 
     uint8_t buffer[34]; // 2 + 1 + 31
-    memcpy(&buffer[0], checksum, 2);
+    memcpy(&buffer[0], &checksum, 2);
     buffer[2] = len;
     memcpy(&buffer[3], name, len);
 
