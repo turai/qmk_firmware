@@ -1,4 +1,5 @@
 /* Copyright 2021 Harrison Chan (Xelus)
+ * Copyright 2022 1Conan <me@1conan.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,11 +18,12 @@
 #pragma once
 
 /* USB Device descriptor parameter */
-#define VENDOR_ID       0x3434
-#define PRODUCT_ID      0xFE0E
+#define VENDOR_ID       0x05AC
+#define PRODUCT_ID      0x0256
 #define DEVICE_VER		0x0001
-#define MANUFACTURER    RAKK LAM ANG
-#define PRODUCT         RAKK LAM ANG PRO
+
+#define MANUFACTURER    miller
+#define PRODUCT         GM807
 
 /* key matrix size */
 #define MATRIX_ROWS 6
@@ -35,16 +37,26 @@
 // Encoder Config
 #define ENCODERS_PAD_A { B10 }
 #define ENCODERS_PAD_B { B9 }
-#define ENCODER_RESOLUTION 2
 
 // LED Status Indicators
 #define LED_CAPS_LOCK_PIN D6
-#define LED_NUM_LOCK_PIN A6
-#define LED_SCROLL_LOCK_PIN A7
-#define LED_PIN_ON_STATE  1
+
+// Exta button LEDs
+#define LED_K4 A6
+#define LED_K5 A7
+
+// USB "Passthrough" LED
+#define LED_USB_PORT D4
+
+
+// LEDs and Resistor unpopulated
+// Resistor pad is near the BT module
+// LEDs: LED6-10
+// Resistor: RA42 (Value: ? (probably an 82Ω))
+#define LED_ENCODER D5
 
 /* Debounce reduces chatter (unintended double-presses) - set 0 if debouncing is not needed */
-#define DEBOUNCE 5
+#define DEBOUNCE 0
 
 // RGB Matrix Config
 #define LED_MATRIX_ROWS MATRIX_ROWS

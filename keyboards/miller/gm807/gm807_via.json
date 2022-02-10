@@ -1,7 +1,7 @@
 {
-  "name": "Rakk Lam Ang Pro",
-  "vendorId": "0x3434",
-  "productId": "0xFE0E",
+  "name": "miller GM807",
+  "vendorId": "0x05AC",
+  "productId": "0x0256",
   "lighting": {
     "extends": "qmk_rgblight",
     "underglowEffects": [
