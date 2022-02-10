@@ -4,7 +4,7 @@ miller GM807 Hotswap RGB
 
 Also sold as:
 
-- Akko K870T
+- Ajazz K870T
 - Flashquark Falcon Elite
 - Keebio Hotswap TKL Bluetooth Keyboard w/RGB
 - Rakk Lam-Ang (Pro)
