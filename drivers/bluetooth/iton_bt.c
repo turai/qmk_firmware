@@ -162,6 +162,10 @@ void iton_bt_set_name(char *name) {
     uint8_t len = sizeof(name);
     uint16_t checksum = 0;
 
+    if (len >= 32) {
+        return;
+    }
+
     for (uint8_t i = 0; i < len; i++) {
         checksum += (uint16_t)name[i];
     }
