@@ -5,6 +5,7 @@
 #include "config.h"
 #include "SPI.h"
 #include "quantum.h"
+#include "outputselect.h"
 
 #ifndef ITON_BT_IRQ_PIN
 #define ITON_BT_IRQ_PIN A0
@@ -99,7 +100,6 @@ uint8_t iton_bt_tx_ptr = 0;
 
 uint8_t iton_bt_rx[3];
 uint8_t iton_bt_rx_ptr = 0;
-uint8_t iton_bt_keyboard_led_state  = 0x00;
 
 void iton_bt_init(void) {
     setPinOutput(ITON_BT_IRQ_PIN);
@@ -114,13 +114,6 @@ void iton_bt_init(void) {
 }
 
 void iton_bt_write(uint8_t cmd, uint8_t *data, uint8_t len) {
-    // writePinHigh(ITON_BT_IRQ_PIN);
-
-    // SPI0_Write1(cmd);
-    // SPI0_Write(data, len);
-    // SPI0_Write_End();
-
-    // writePinLow(ITON_BT_IRQ_PIN);
     while (readPin(ITON_BT_IRQ_PIN));
     iton_bt_tx[0] = cmd;
     iton_bt_tx_cnt = len + 1;
@@ -222,6 +215,58 @@ void iton_bt_send_system(uint16_t data) {
     iton_bt_write(system_report, &key, 1);
 }
 
+uint8_t iton_bt_keyboard_led_state  = 0x00;
+
+bool iton_bt_is_connected = false;
+bool iton_bt_in_pairing = false;
+bool iton_bt_low_battery = false;
+
+__attribute__((weak)) void iton_bt_exit_low_battery_mode(void) {}
+__attribute__((weak)) void iton_bt_low_battery_notification(void) {};
+__attribute__((weak)) void iton_bt_low_power_shutdown(void) {}
+
+__attribute__((weak)) void iton_bt_bt_connection_success(void) {}
+__attribute__((weak)) void iton_bt_bt_entered_pairing(void) {}
+__attribute__((weak)) void iton_bt_bt_disconnected(void) {}
+
+void iton_bt_battery_notif(uint8_t param) {
+    switch (param) {
+        case voltage_low:
+            iton_bt_low_battery = true;
+            iton_bt_low_battery_notification();
+            break;
+        case exit_low_battery_mode:
+            iton_bt_exit_low_battery_mode();
+            break;
+        case low_power_shutdown:
+            iton_bt_low_power_shutdown();
+            break;
+    }
+}
+
+void iton_bt_bluetooth_notif(uint8_t param) {
+    switch (param) {
+        case bt_connection_success:
+            iton_bt_in_pairing = false;
+            iton_bt_is_connected = true;
+            iton_bt_bt_connection_success();
+            break;
+        case bt_entered_pairing:
+            iton_bt_in_pairing = true;
+            iton_bt_is_connected = false;
+            iton_bt_bt_entered_pairing();
+            break;
+        case bt_disconnected:
+            iton_bt_is_connected = false;
+            iton_bt_bt_disconnected();
+            break;
+        case bt_enters_connection:
+            break;
+        default:
+            return;
+    }
+}
+
 OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
     OSAL_IRQ_PROLOGUE();
     if (SN_SPI0->RIS_b.RXFIFOTHIF != 0) {
@@ -233,6 +278,15 @@ OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
             if (iton_bt_rx_ptr == 2 && iton_bt_rx[0] == led_state) {
                 iton_bt_keyboard_led_state = iton_bt_rx[1];
                 iton_bt_rx_ptr = 0;
+            } else if (iton_bt_rx_ptr == 3 && iton_bt_rx[0] == notification) {
+                switch (iton_bt_rx[1]) {
+                    case battery_notif:
+                        iton_bt_battery_notif(iton_bt_rx[2]);
+                        break;
+                    case bluetooth_notif:
+                        iton_bt_bluetooth_notif(iton_bt_rx[2]);
+                        break;
+                }
             }
             if (iton_bt_rx_ptr >= 3) {
                 iton_bt_rx_ptr = 0;
