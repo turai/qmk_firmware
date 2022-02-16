@@ -4,7 +4,6 @@
 #include "gpio.h"
 #include "config.h"
 #include "SPI.h"
-#include "iton_bt.h"
 #include "quantum.h"
 
 #ifndef ITON_BT_IRQ_PIN
@@ -94,7 +93,15 @@ enum iton_bt_notification_param {
     bt_enters_connection    = 0x79,
 };
 
-void iton_bt_init() {
+uint8_t iton_bt_tx[17];
+uint8_t iton_bt_tx_cnt = 0;
+uint8_t iton_bt_tx_ptr = 0;
+
+uint8_t iton_bt_rx[3];
+uint8_t iton_bt_rx_ptr = 0;
+uint8_t iton_bt_keyboard_led_state  = 0x00;
+
+void iton_bt_init(void) {
     setPinOutput(ITON_BT_IRQ_PIN);
     writePinLow(ITON_BT_IRQ_PIN);
     setPinInput(ITON_BT_INT_PIN);
@@ -107,13 +114,22 @@ void iton_bt_init() {
 }
 
 void iton_bt_write(uint8_t cmd, uint8_t *data, uint8_t len) {
+    // writePinHigh(ITON_BT_IRQ_PIN);
+
+    // SPI0_Write1(cmd);
+    // SPI0_Write(data, len);
+    // SPI0_Write_End();
+
+    // writePinLow(ITON_BT_IRQ_PIN);
+    while (readPin(ITON_BT_IRQ_PIN));
+    iton_bt_tx[0] = cmd;
+    iton_bt_tx_cnt = len + 1;
+    for(uint8_t i = 0; i < len; i++) {
+        iton_bt_tx[i + 1] = data[i];
+    }
+
     writePinHigh(ITON_BT_IRQ_PIN);
-
-    SPI0_Write1(cmd);
-    SPI0_Write(data, len);
-    SPI0_Write_End();
-
-    writePinLow(ITON_BT_IRQ_PIN);
+    SN_SPI0->DATA = iton_bt_tx[iton_bt_tx_ptr++];
 }
 
 void iton_bt_write2(uint8_t cmd, uint8_t b1, uint8_t b2) {
@@ -125,19 +141,19 @@ void iton_bt_control(uint8_t cmd, uint8_t param) {
     iton_bt_write2(control, cmd, param);
 }
 
-void iton_bt_mode_usb() {
+void iton_bt_mode_usb(void) {
     iton_bt_control(control_usb, mode_usb);
 }
 
-void iton_bt_mode_bt() {
+void iton_bt_mode_bt(void) {
     iton_bt_control(control_bt, mode_bt);
 }
 
-void iton_bt_reset_pairing() {
+void iton_bt_reset_pairing(void) {
     iton_bt_control(control_bt, reset_pairing);
 }
 
-void iton_bt_enter_pairing() {
+void iton_bt_enter_pairing(void) {
     iton_bt_control(control_bt, enter_pairing);
 }
 
@@ -150,11 +166,11 @@ void iton_bt_switch_profile(uint8_t profile) {
     iton_bt_control(control_bt, switch_profile + profile);
 }
 
-void iton_bt_os_mac() {
+void iton_bt_os_mac(void) {
     iton_bt_control(control_bt, os_mac);
 }
 
-void iton_bt_os_win() {
+void iton_bt_os_win(void) {
     iton_bt_control(control_bt, os_win);
 }
 
@@ -204,4 +220,34 @@ void iton_bt_send_consumer(uint16_t data) {
 void iton_bt_send_system(uint16_t data) {
     uint8_t key = (uint8_t)(data >> 8);
     iton_bt_write(system_report, &key, 1);
+}
+
+OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
+    OSAL_IRQ_PROLOGUE();
+    if (SN_SPI0->RIS_b.RXFIFOTHIF != 0) {
+        if (readPin(ITON_BT_INT_PIN)) {
+            uint8_t data = SN_SPI0->DATA;
+            if ((data == 0 && iton_bt_rx_ptr != 0) || data != 0) {
+                iton_bt_rx[iton_bt_rx_ptr++] = data;
+            }
+            if (iton_bt_rx_ptr == 2 && iton_bt_rx[0] == led_state) {
+                iton_bt_keyboard_led_state = iton_bt_rx[1];
+                iton_bt_rx_ptr = 0;
+            }
+            if (iton_bt_rx_ptr >= 3) {
+                iton_bt_rx_ptr = 0;
+            }
+        } else {
+            if (iton_bt_tx_ptr < iton_bt_tx_cnt) {
+                SN_SPI0->DATA = iton_bt_tx[iton_bt_tx_ptr++];
+            } else {
+                writePinLow(ITON_BT_IRQ_PIN);
+                iton_bt_tx_ptr = 0;
+            }
+            uint8_t dummyrx = SN_SPI0->DATA;
+            (void)dummyrx;
+        }
+        SN_SPI0->IC_b.RXFIFOTHIC = 1;
+    }
+    OSAL_IRQ_EPILOGUE();
 }

@@ -742,7 +742,7 @@ ifeq ($(strip $(BLUETOOTH_ENABLE)), yes)
 	ifeq ($(strip $(BLUETOOTH_DRIVER)), ITON_BT)
         OPT_DEFS += -DMODULE_ITON_BT
         ifneq (,$(filter $(MCU_SERIES),SN32F240B))
-            OPT_DEFS += -DSN32_SPI_SLAVE_MODE -DSN32_SPI_TXFIFO_THRESHOLD=7
+            OPT_DEFS += -DSN32_SPI_SLAVE_MODE -DSN32_SPI_TXFIFO_THRESHOLD=0 -DSN32_SPI_RXFIFO_THRESHOLD=0 -DSN32_SPI0_INTERRUPT_PRIO=0
         endif
         SRC += $(DRIVER_PATH)/bluetooth/iton_bt.c
     endif

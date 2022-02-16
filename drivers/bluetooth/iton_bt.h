@@ -18,3 +18,5 @@ void iton_bt_set_name(char *name);
 void iton_bt_send_keyboard(report_keyboard_t *report);
 void iton_bt_send_consumer(uint16_t data);
 void iton_bt_send_system(uint16_t data);
+
+extern uint8_t iton_bt_keyboard_led_state;
