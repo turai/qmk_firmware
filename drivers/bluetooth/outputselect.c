@@ -33,7 +33,7 @@ void set_output(uint8_t output) {
     set_output_user(output);
     desired_output = output;
 
-#ifdef MODULE_ITON_BT
+#if defined(MODULE_ITON_BT) && !defined(ITON_BT_DONT_SEND_MODES)
     if (output == OUTPUT_BLUETOOTH) {
         iton_bt_mode_bt();
     } else if (output == OUTPUT_USB) {

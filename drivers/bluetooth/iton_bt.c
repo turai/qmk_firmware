@@ -94,7 +94,7 @@ enum iton_bt_notification_param {
     bt_enters_connection    = 0x79,
 };
 
-uint8_t iton_bt_tx[17];
+uint8_t iton_bt_tx[35];
 uint8_t iton_bt_tx_cnt = 0;
 uint8_t iton_bt_tx_ptr = 0;
 
@@ -117,9 +117,7 @@ void iton_bt_write(uint8_t cmd, uint8_t *data, uint8_t len) {
     while (readPin(ITON_BT_IRQ_PIN));
     iton_bt_tx[0] = cmd;
     iton_bt_tx_cnt = len + 1;
-    for(uint8_t i = 0; i < len; i++) {
-        iton_bt_tx[i + 1] = data[i];
-    }
+    memcpy(&iton_bt_tx[1], data, len);
 
     writePinHigh(ITON_BT_IRQ_PIN);
     SN_SPI0->DATA = iton_bt_tx[iton_bt_tx_ptr++];
@@ -167,7 +165,24 @@ void iton_bt_os_win(void) {
     iton_bt_control(control_bt, os_win);
 }
 
+/**
+ * Only implemented on newer firmware
+ * pin range is 0-3
+ * Pin P26 = 0
+ * Pin P27 = 1
+ * Pin P28 = 2
+ * Pin P29 = 3
+ *
+ * Examples:
+ * iton_bt_set_pins(ITON_BT_PIN_MASK(0) | ITON_BT_PIN_ON(0));
+ */
+void iton_bt_set_pins(uint8_t cfg) {
+    iton_bt_control(control_bt, cfg);
+}
+
+// Only implemented on newer firmware
 void iton_bt_set_name(char *name) {
+    uint8_t buffer[34]; // 2 + 1 + 31
     uint8_t len = sizeof(name);
     uint16_t checksum = 0;
 
@@ -179,9 +194,10 @@ void iton_bt_set_name(char *name) {
         checksum += (uint16_t)name[i];
     }
 
-    uint8_t buffer[34]; // 2 + 1 + 31
-    memcpy(&buffer[0], &checksum, 2);
+    buffer[0] = (uint8_t)(checksum >> 8);
+    buffer[1] = (uint8_t)(checksum & 0xFF);
     buffer[2] = len;
+
     memcpy(&buffer[3], name, len);
 
     iton_bt_write(set_name, &buffer[0], len + 3);
@@ -229,7 +245,7 @@ __attribute__((weak)) void iton_bt_bt_connection_success(void) {}
 __attribute__((weak)) void iton_bt_bt_entered_pairing(void) {}
 __attribute__((weak)) void iton_bt_bt_disconnected(void) {}
 
-void iton_bt_battery_notif(uint8_t param) {
+static inline void iton_bt_battery_notif(uint8_t param) {
     switch (param) {
         case voltage_low:
             iton_bt_low_battery = true;
@@ -244,7 +260,7 @@ void iton_bt_battery_notif(uint8_t param) {
     }
 }
 
-void iton_bt_bluetooth_notif(uint8_t param) {
+static inline void iton_bt_bluetooth_notif(uint8_t param) {
     switch (param) {
         case bt_connection_success:
             iton_bt_in_pairing = false;
@@ -262,8 +278,6 @@ void iton_bt_bluetooth_notif(uint8_t param) {
             break;
         case bt_enters_connection:
             break;
-        default:
-            return;
     }
 }
 
@@ -287,8 +301,8 @@ OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
                         iton_bt_bluetooth_notif(iton_bt_rx[2]);
                         break;
                 }
-            }
-            if (iton_bt_rx_ptr >= 3) {
+                iton_bt_rx_ptr = 0;
+            } else if (iton_bt_rx_ptr >= 3) {
                 iton_bt_rx_ptr = 0;
             }
         } else {
