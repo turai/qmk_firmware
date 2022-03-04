@@ -60,8 +60,9 @@ enum iton_bt_cmd {
 #endif
 
 enum iton_bt_control_cmd {
-    control_usb = 0x58,
-    control_bt  = 0x51,
+    control_usb  = 0x58,
+    control_bt   = 0x51,
+    control_pins = 0x52,
 };
 
 enum iton_bt_control_param {
@@ -177,7 +178,7 @@ void iton_bt_os_win(void) {
  * iton_bt_set_pins(ITON_BT_PIN_MASK(0) | ITON_BT_PIN_ON(0));
  */
 void iton_bt_set_pins(uint8_t cfg) {
-    iton_bt_control(control_bt, cfg);
+    iton_bt_control(control_pins, cfg);
 }
 
 // Only implemented on newer firmware
