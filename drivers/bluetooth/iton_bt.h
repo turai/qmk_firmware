@@ -4,9 +4,9 @@
 #include "quantum.h"
 
 // pin masks
-#define ITON_BT_PIN_MASK(x) (1 << (x + 4))
-#define ITON_BT_PIN_ON(x)   (1 << x)
-#define ITON_BT_PIN_OFF(x)  (0 << x)
+#define ITON_BT_PIN_MASK(x) (1 << x)
+#define ITON_BT_PIN_ON(x)   (1 << (x + 4))
+#define ITON_BT_PIN_OFF(x)  (0 << (x + 4))
 
 void iton_bt_init(void);
 
