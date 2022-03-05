@@ -73,6 +73,8 @@ enum iton_bt_control_param {
     switch_profile = 0x81, // add 0-5 for other profiles
     os_mac         = 0x74,
     os_win         = 0x75,
+    connect_ack    = 0x50,
+    disconnect_ack = 0x51,
 };
 
 enum iton_bt_notification_type {
@@ -266,6 +268,9 @@ static inline void iton_bt_bluetooth_notif(uint8_t param) {
         case bt_connection_success:
             iton_bt_in_pairing = false;
             iton_bt_is_connected = true;
+#ifdef ITON_BT_ENABLE_ACK
+            iton_bt_control(control_bt, connect_ack);
+#endif
             iton_bt_bt_connection_success();
             break;
         case bt_entered_pairing:
@@ -275,6 +280,10 @@ static inline void iton_bt_bluetooth_notif(uint8_t param) {
             break;
         case bt_disconnected:
             iton_bt_is_connected = false;
+            iton_bt_in_pairing = false;
+#ifdef ITON_BT_ENABLE_ACK
+            iton_bt_control(control_bt, disconnect_ack);
+#endif
             iton_bt_bt_disconnected();
             break;
         case bt_enters_connection:
