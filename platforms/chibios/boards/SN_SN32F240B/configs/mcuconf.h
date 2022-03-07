@@ -54,6 +54,11 @@
 #define SN32_HAS_GPIOC TRUE
 #define SN32_HAS_GPIOD TRUE
 
+/**
+ * SPI driver system settings
+ */
+#define SN32_SPI_USE_SPI0 TRUE
+
 /*
  * USB driver system settings.
  */

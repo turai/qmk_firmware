@@ -493,6 +493,8 @@
 #define SPI_SELECT_MODE                     SPI_SELECT_MODE_PAD
 #endif
 
+#define HAL_LLD_SELECT_SPI_V2 TRUE
+
 /*===========================================================================*/
 /* UART driver related settings.                                             */
 /*===========================================================================*/
