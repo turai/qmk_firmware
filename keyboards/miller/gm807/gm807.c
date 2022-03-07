@@ -63,10 +63,6 @@ void keyboard_pre_init_kb(void)  {
     setPinOutput(LED_ENCODER);
     writePinLow(LED_ENCODER);
 
-#ifdef MODULE_ITON_BT
-    iton_bt_init();
-#endif
-
     keyboard_pre_init_user();
 }
 
