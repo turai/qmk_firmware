@@ -44,7 +44,12 @@ ifeq ($(strip $(NKRO_ENABLE)), yes)
     ifeq ($(PROTOCOL), VUSB)
         $(info NKRO is not currently supported on V-USB, and has been disabled.)
     else ifeq ($(strip $(BLUETOOTH_ENABLE)), yes)
-        $(info NKRO is not currently supported with Bluetooth, and has been disabled.)
+        ifneq ($(strip $(BLUETOOTH_DRIVER)), ITON_BT)
+            $(info NKRO is not currently supported with Bluetooth, and has been disabled.)
+        else
+            TMK_COMMON_DEFS += -DNKRO_ENABLE
+            SHARED_EP_ENABLE = yes
+        endif
     else
         TMK_COMMON_DEFS += -DNKRO_ENABLE
         SHARED_EP_ENABLE = yes
