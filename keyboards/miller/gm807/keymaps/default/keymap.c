@@ -16,6 +16,7 @@
  */
 #include "gm807.h"
 #ifdef BLUETOOTH_ENABLE
+#include "iton_bt.h"
 #include "outputselect.h"
 #endif
 
@@ -112,4 +113,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 void keyboard_post_init_user() {
     writePinHigh(LED_USB_PORT);
     writePinHigh(LED_K4);
+}
+
+uint8_t last_nkro_conf;
+
+void set_output_user(uint8_t output) {
+    switch (output) {
+        case OUTPUT_USB:
+            if (last_nkro_conf) keymap_config.nkro = last_nkro_conf;
+            break;
+        case OUTPUT_BLUETOOTH:
+            last_nkro_conf = keymap_config.nkro;
+            keymap_config.nkro = false;
+            break;
+        default:
+            break;
+    }
 }
