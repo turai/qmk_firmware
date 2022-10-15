@@ -403,7 +403,7 @@ endif
 
 RGB_MATRIX_ENABLE ?= no
 
-VALID_RGB_MATRIX_TYPES := AW20216 IS31FL3731 IS31FL3733 IS31FL3737 IS31FL3741 IS31FL3742A IS31FL3743A IS31FL3745 IS31FL3746A CKLED2001 WS2812 custom
+VALID_RGB_MATRIX_TYPES := AW20216 IS31FL3731 IS31FL3733 IS31FL3737 IS31FL3741 IS31FL3742A IS31FL3743A IS31FL3745 IS31FL3746A CKLED2001 WS2812 SN32F24xB custom
 ifeq ($(strip $(RGB_MATRIX_ENABLE)), yes)
     ifeq ($(filter $(RGB_MATRIX_DRIVER),$(VALID_RGB_MATRIX_TYPES)),)
         $(call CATASTROPHIC_ERROR,Invalid RGB_MATRIX_DRIVER,RGB_MATRIX_DRIVER="$(RGB_MATRIX_DRIVER)" is not a valid matrix type)
@@ -501,6 +501,12 @@ endif
     ifeq ($(strip $(RGB_MATRIX_DRIVER)), APA102)
         OPT_DEFS += -DAPA102
         APA102_DRIVER_REQUIRED := yes
+    endif
+
+    ifeq ($(strip $(RGB_MATRIX_DRIVER)), SN32F24xB)
+        OPT_DEFS += -DSN32F24xB
+        COMMON_VPATH += $(DRIVER_PATH)/led/sn32
+        SRC += rgb_matrix_sn32f24xb.c
     endif
 
     ifeq ($(strip $(RGB_MATRIX_CUSTOM_KB)), yes)
@@ -632,7 +638,7 @@ endif
 COMMON_VPATH += $(QUANTUM_DIR)/bootmagic
 QUANTUM_SRC += $(QUANTUM_DIR)/bootmagic/magic.c
 
-VALID_CUSTOM_MATRIX_TYPES:= yes lite no
+VALID_CUSTOM_MATRIX_TYPES:= yes lite shared no
 
 CUSTOM_MATRIX ?= no
 
@@ -648,6 +654,11 @@ ifneq ($(strip $(CUSTOM_MATRIX)), yes)
     ifneq ($(strip $(CUSTOM_MATRIX)), lite)
         # Include the standard or split matrix code if needed
         QUANTUM_SRC += $(QUANTUM_DIR)/matrix.c
+    endif
+    # if 'shared' then skip only the matrix scan implementation
+    ifeq ($(strip $(CUSTOM_MATRIX)), shared)
+        # Exclude only the standard or split matrix code scan
+        OPT_DEFS += -DMATRIX_NO_SCAN
     endif
 endif
 
