@@ -50,6 +50,13 @@
 extern keymap_config_t keymap_config;
 #endif
 
+#ifdef BLUETOOTH_ENABLE
+#    include "outputselect.h"
+#    ifdef BLUETOOTH_ITON_BT
+#        include "iton_bt.h"
+#    endif
+#endif
+
 /* ---------------------------------------------------------
  *       Global interface variables and declarations
  * ---------------------------------------------------------
@@ -823,12 +830,29 @@ static void keyboard_idle_timer_cb(void *arg) {
 
 /* LED status */
 uint8_t keyboard_leds(void) {
+#ifdef BLUETOOTH_ENABLE
+    if (where_to_send() == OUTPUT_BLUETOOTH) {
+#    ifdef BLUETOOTH_ITON_BT
+        return iton_bt_led_state;
+#    endif
+    }
+#endif
     return keyboard_led_state;
 }
 
 /* prepare and start sending a report IN
  * not callable from ISR or locked state */
 void send_keyboard(report_keyboard_t *report) {
+
+#ifdef BLUETOOTH_ENABLE
+    if (where_to_send() == OUTPUT_BLUETOOTH) {
+#    ifdef BLUETOOTH_ITON_BT
+        iton_bt_send_keyboard(report);
+#    endif
+        return;
+    }
+#endif
+
     osalSysLock();
     if (usbGetDriverStateI(&USB_DRIVER) != USB_ACTIVE) {
         goto unlock;
@@ -946,6 +970,36 @@ void send_extra(report_extra_t *report) {
 
     usbStartTransmitI(&USB_DRIVER, SHARED_IN_EPNUM, (uint8_t *)report, sizeof(report_extra_t));
     osalSysUnlock();
+#endif
+}
+
+void send_system(uint16_t data) {
+#ifdef BLUETOOTH_ENABLE
+    if (where_to_send() == OUTPUT_BLUETOOTH) {
+#    ifdef BLUETOOTH_ITON_BT
+        iton_bt_report_system(data);
+#    endif
+        return;
+    }
+#endif
+
+#ifdef EXTRAKEY_ENABLE
+    send_extra(REPORT_ID_SYSTEM, data);
+#endif
+}
+
+void send_consumer(uint16_t data) {
+#ifdef BLUETOOTH_ENABLE
+    if (where_to_send() == OUTPUT_BLUETOOTH) {
+#    ifdef BLUETOOTH_ITON_BT
+        iton_bt_report_media(data);
+#    endif
+        return;
+    }
+#endif
+
+#ifdef EXTRAKEY_ENABLE
+    send_extra(REPORT_ID_CONSUMER, data);
 #endif
 }
 
