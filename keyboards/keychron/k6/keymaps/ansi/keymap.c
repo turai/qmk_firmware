@@ -30,7 +30,7 @@ enum layer_names {
 };
 
 enum custom_keycodes {
-    KC_MISSION_CONTROL = SAFE_RANGE,
+    KC_MISSION_CONTROL = K6_SAFE_RANGE,
     KC_LAUNCHPAD
 };
 
@@ -38,6 +38,18 @@ enum custom_keycodes {
 #define KC_FLXP LGUI(KC_E)          // Windows file explorer
 #define KC_MCTL KC_MISSION_CONTROL  // Mission Control
 #define KC_LPAD KC_LAUNCHPAD        // Launchpad
+
+#ifdef BLUETOOTH_ENABLE
+#define BT_PRO1 BT_PROFILE1
+#define BT_PRO2 BT_PROFILE2
+#define BT_PRO3 BT_PROFILE3
+#define BTTOG BT_MODE_TOGGLE
+#else
+#define BT_PRO1 _______
+#define BT_PRO2 _______
+#define BT_PRO3 _______
+#define BTTOG _______
+#endif
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /* Windows Base
@@ -75,7 +87,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [WIN_FN1] = LAYOUT_65_ansi(
         KC_GRV,  KC_BRIU, KC_BRID, KC_TASK, KC_FLXP, RGB_VAD, RGB_VAI, KC_MPRV, KC_MPLY, KC_MNXT, KC_MUTE, KC_VOLD, KC_VOLU, _______,          RGB_TOG,
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
+        BTTOG,   BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
         _______,          _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______,
         _______, _______, _______,                            _______,                            KC_RALT, _______, _______, _______, _______, _______
@@ -115,7 +127,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [MAC_FN1] = LAYOUT_65_ansi(
         KC_GRV,  KC_BRIU, KC_BRID, KC_MCTL, KC_LPAD, RGB_VAD, RGB_VAI, KC_MPRV, KC_MPLY, KC_MNXT, KC_MUTE, KC_VOLD, KC_VOLU, _______,          RGB_TOG,
-        _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
+        BTTOG,   BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
         _______,          _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______,
         _______, _______, _______,                            _______,                            KC_RALT, _______, _______, _______, _______, _______
