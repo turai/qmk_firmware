@@ -23,6 +23,7 @@ enum K6_keycodes {
     BT_PROFILE2,
     BT_PROFILE3,
     BT_PAIR,
+    BT_TOGGLE,
     K6_SAFE_RANGE
 };
 

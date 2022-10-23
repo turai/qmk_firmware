@@ -16,8 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include QMK_KEYBOARD_H
+#ifdef BLUETOOTH_ENABLE
 #include "iton_bt.h"
 #include "outputselect.h"
+#endif
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
@@ -147,13 +149,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______,                             _______,                            _______, _______, _______, RGB_HUD, RGB_SAD, RGB_HUI
     )
 };
-void keyboard_pre_init_user() {
-#ifdef BLUETOOTH_ENABLE
-    if (!readPin(D5)) {
-        iton_bt_start();
-    }
-#endif
-}
 
 bool dip_switch_update_user(uint8_t index, bool active) {
     switch (index) {
@@ -171,6 +166,8 @@ bool dip_switch_update_user(uint8_t index, bool active) {
                 set_output(OUTPUT_USB);
             } else {
                 set_output(OUTPUT_BLUETOOTH);
+                iton_bt_start();
+                iton_bt_mode_bt();
             }
             #endif
         break;
