@@ -20,28 +20,10 @@
 #include "iton_bt.h"
 #endif
 
-void keyboard_pre_init_kb(void)  {
-
-#ifdef BLUETOOTH_ENABLE
-    iton_bt_start();
-#endif
-
-    keyboard_pre_init_user();
-}
-
-
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
         switch(keycode) {
 #ifdef BLUETOOTH_ENABLE
-            case BT_MODE_TOGGLE:
-                uint8_t where = where_to_send();
-                if (where == OUTPUT_BLUETOOTH) {
-                    set_output(OUTPUT_USB);
-                } else if (where == OUTPUT_USB) {
-                    set_output(OUTPUT_BLUETOOTH);
-                }
-                break;
             case BT_PROFILE1:
                 iton_bt_switch_profile(0);
                 break;

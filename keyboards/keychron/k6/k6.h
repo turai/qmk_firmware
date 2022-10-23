@@ -22,7 +22,6 @@ enum K6_keycodes {
     BT_PROFILE1 = SAFE_RANGE,
     BT_PROFILE2,
     BT_PROFILE3,
-    BT_MODE_TOGGLE,
     BT_PAIR,
     K6_SAFE_RANGE
 };

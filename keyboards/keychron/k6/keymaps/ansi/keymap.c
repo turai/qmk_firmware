@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include QMK_KEYBOARD_H
+#include "iton_bt.h"
+#include "outputselect.h"
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
@@ -39,17 +41,9 @@ enum custom_keycodes {
 #define KC_MCTL KC_MISSION_CONTROL  // Mission Control
 #define KC_LPAD KC_LAUNCHPAD        // Launchpad
 
-#ifdef BLUETOOTH_ENABLE
 #define BT_PRO1 BT_PROFILE1
 #define BT_PRO2 BT_PROFILE2
 #define BT_PRO3 BT_PROFILE3
-#define BTTOG BT_MODE_TOGGLE
-#else
-#define BT_PRO1 _______
-#define BT_PRO2 _______
-#define BT_PRO3 _______
-#define BTTOG _______
-#endif
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /* Windows Base
@@ -87,7 +81,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [WIN_FN1] = LAYOUT_65_ansi(
         KC_GRV,  KC_BRIU, KC_BRID, KC_TASK, KC_FLXP, RGB_VAD, RGB_VAI, KC_MPRV, KC_MPLY, KC_MNXT, KC_MUTE, KC_VOLD, KC_VOLU, _______,          RGB_TOG,
-        BTTOG,   BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
+        _______, BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
         _______,          _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______,
         _______, _______, _______,                            _______,                            KC_RALT, _______, _______, _______, _______, _______
@@ -127,7 +121,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [MAC_FN1] = LAYOUT_65_ansi(
         KC_GRV,  KC_BRIU, KC_BRID, KC_MCTL, KC_LPAD, RGB_VAD, RGB_VAI, KC_MPRV, KC_MPLY, KC_MNXT, KC_MUTE, KC_VOLD, KC_VOLU, _______,          RGB_TOG,
-        BTTOG,   BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
+        _______, BT_PRO1, BT_PRO2, BT_PRO3, _______, _______, _______, _______, _______, _______, KC_INS,  KC_DEL,  KC_END,  _______,          _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,          _______,
         _______,          _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______, _______, _______,
         _______, _______, _______,                            _______,                            KC_RALT, _______, _______, _______, _______, _______
@@ -147,33 +141,41 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [FN2] = LAYOUT_65_ansi(
         KC_TILD, KC_F1,   KC_F2,   KC_F3,   KC_F4,    KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  QK_BOOT,          RGB_MOD,
-        _______, RGB_M_P, RGB_M_B, RGB_M_R, RGB_M_SW, _______, _______, _______, _______, _______, _______, _______, _______, _______,          RGB_RMOD,
+        _______, RGB_M_P, RGB_M_B, RGB_M_R, RGB_M_SW, _______, _______, _______, _______, _______, BT_PAIR, _______, _______, _______,          RGB_RMOD,
         _______, _______, _______, _______, _______,  _______, _______, _______, _______, _______, _______, _______,          _______,          RGB_SPI,
         _______,          _______, _______, _______,  _______, _______, _______, _______, _______, _______, _______,          _______, RGB_SAI, RGB_SPD,
         _______, _______, _______,                             _______,                            _______, _______, _______, RGB_HUD, RGB_SAD, RGB_HUI
     )
 };
+void keyboard_pre_init_user() {
+#ifdef BLUETOOTH_ENABLE
+    if (!readPin(D5)) {
+        iton_bt_start();
+    }
+#endif
+}
 
-bool dip_switch_update_user(uint8_t index, bool active){
-    switch(index){
+bool dip_switch_update_user(uint8_t index, bool active) {
+    switch (index) {
         case 0: // macos/windows togggle
-            if(active){ //macos
+            if (active) { //macos
                 layer_move(MAC_BASE);
-            }
-            else{ //windows
+            } else { //windows
                 layer_move(WIN_BASE);
             }
+            break;
+
+        case 1:
+            #ifdef BLUETOOTH_ENABLE
+            if (active) {
+                set_output(OUTPUT_USB);
+            } else {
+                set_output(OUTPUT_BLUETOOTH);
+            }
+            #endif
         break;
     }
     return true;
-}
-
-void keyboard_post_init_user(void) {
-    // Customise these values to desired behaviour
-    // debug_enable=true;
-    // debug_matrix=true;
-    // debug_keyboard=true;
-    // debug_mouse=true;
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
