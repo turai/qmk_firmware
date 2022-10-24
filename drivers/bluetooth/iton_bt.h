@@ -79,10 +79,8 @@ void iton_bt_start(void);
 void iton_bt_stop(void);
 void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len);
 void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2);
-void iton_bt_report_hid(uint8_t *raw);
-void iton_bt_report_nkro(uint8_t *raw);
-void iton_bt_report_media(uint16_t data);
-void iton_bt_report_system(uint16_t data);
+void iton_bt_send_system(uint16_t data);
+void iton_bt_send_consumer(uint16_t data);
 void iton_bt_send_keyboard(report_keyboard_t *report);
 
 /**

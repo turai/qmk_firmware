@@ -155,20 +155,12 @@ void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
     spiStartSend(&ITON_BT_SPI_PORT, 3, &iton_bt_tx[0]);
 }
 
-void iton_bt_report_hid(uint8_t *raw) {
-    iton_bt_send(report_hid, raw, 8);
-}
-
-void iton_bt_report_nkro(uint8_t *raw) {
-    iton_bt_send(report_nkro, raw, 15);
-}
-
-void iton_bt_report_media(uint16_t data) {
-    iton_bt_send2(report_media, HIGH_BITS(data), LOW_BITS(data));
-}
-
-void iton_bt_report_system(uint16_t data) {
+void iton_bt_send_system(uint16_t data) {
     iton_bt_send(report_system, (uint8_t *)&data, 1);
+}
+
+void iton_bt_send_consumer(uint16_t data) {
+    iton_bt_send2(report_media, HIGH_BITS(data), LOW_BITS(data));
 }
 
 void iton_bt_send_keyboard(report_keyboard_t *report) {
@@ -181,9 +173,10 @@ void iton_bt_send_keyboard(report_keyboard_t *report) {
         nkro_report[report->keys[5] >> 3] |= (1 << (report->keys[5] & 7));
         iton_bt_send_kb_last_key = report->keys[5];
 
-        return iton_bt_report_nkro(&nkro_report[0]);
+        return iton_bt_send(report_nkro, &nkro_report[0], 15);
     }
 #endif
 
-    iton_bt_report_hid(&report->raw[HID_REPORT_OFFSET]);
+
+    iton_bt_send(report_hid, &report->raw[HID_REPORT_OFFSET], 8);
 }
