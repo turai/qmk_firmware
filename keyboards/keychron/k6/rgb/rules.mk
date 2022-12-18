@@ -10,7 +10,7 @@ MAGIC_ENABLE 			= yes
 MAGIC_KEYCODE_ENABLE 	= yes
 MOUSEKEY_ENABLE 		= no    # Mouse keys
 EXTRAKEY_ENABLE 		= yes   # Audio control and System control
-CONSOLE_ENABLE 			= no     # Console for debug
+CONSOLE_ENABLE 			= yes     # Console for debug
 COMMAND_ENABLE 			= no     # Commands for debug and configuration
 NKRO_ENABLE 			= yes       # USB Nkey Rollover
 
@@ -19,14 +19,10 @@ KEYBOARD_SHARED_EP 		= yes
 
 BLUETOOTH_ENABLE 		= yes
 BLUETOOTH_DRIVER 		= ItonBT
-
-CUSTOM_MATRIX 			= yes
+DIP_SWITCH_ENABLE 		= yes
 
 # Custom RGB matrix handling
 RGB_MATRIX_ENABLE 		= yes
 RGB_MATRIX_DRIVER		= SN32F24xB
-
-# project specific files
-SRC = ../../../drivers/led/sn32/matrix_sn32f24xx.c
 
 DEFAULT_FOLDER = keychron/k6/rgb/ansi
