@@ -112,8 +112,39 @@ static THD_FUNCTION(iton_bt_rx_thread, arg) {
 
         switch (iton_bt_rx[1]) {
             case notif_battery:
+                switch (iton_bt_rx[2]) {
+                    case batt_voltage_low:
+                        iton_bt_battery_voltage_low();
+                        break;
+                    case batt_exit_low_battery_mode:
+                        iton_bt_battery_exit_low_battery_mode();
+                        break;
+                    case batt_low_power_shutdown:
+                        iton_bt_battery_low_power_shutdown();
+                        break;
+                    case query_working_mode:
+                        break;
+                    case query_bt_name:
+                        break;
+                }
                 break;
             case notif_bluetooth:
+                switch (iton_bt_rx[2]) {
+                    case bt_connection_success:
+                        iton_bt_is_connected = true;
+                        iton_bt_connection_successful();
+                        break;
+                    case bt_entered_pairing:
+                        iton_bt_entered_pairing();
+                        break;
+                    case bt_disconected:
+                        iton_bt_is_connected = false;
+                        iton_bt_disconnected();
+                        break;
+                    case bt_enters_connection: // connection ready?
+                        break;
+
+                }
                 break;
         }
     }
