@@ -18,12 +18,23 @@
 #ifdef BLUETOOTH_ENABLE
 #include "iton_bt.h"
 #include "outputselect.h"
-bool iton_bt_initialized = false;
 #endif
+
+void keyboard_post_init_kb(void) {
+
+}
+
+void iton_bt_enters_connection_state() {
+    iton_bt_mode_bt();
+}
+
+void iton_bt_connection_successful() {
+    set_output(OUTPUT_BLUETOOTH);
+}
 
 bool dip_switch_update_kb(uint8_t index, bool active) {
     if(index == 1) {
-        #ifdef BLUETOOTH_ENABLE
+        #ifdef ___BLUETOOTH_ENABLE
         if(active) {
             set_output(OUTPUT_USB);
         } else {
@@ -42,6 +53,9 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if(record->event.pressed) {
         switch (keycode) {
             #ifdef BLUETOOTH_ENABLE
+                case BT_TOGGLE:
+                    iton_bt_init();
+                    return false;
                 case BT_PAIR:
                     iton_bt_enter_pairing();
                     return false;

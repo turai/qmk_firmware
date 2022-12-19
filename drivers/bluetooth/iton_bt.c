@@ -8,6 +8,8 @@
 #include "iton_bt.h"
 #include "atomic_util.h"
 
+#include "print.h"
+
 #ifndef ITON_BT_SPI_PORT
 #    define ITON_BT_SPI_PORT SPID1
 #endif
@@ -85,6 +87,7 @@ const SPIConfig iton_bt_spicfg = {
  */
 #if defined(PAL_USE_CALLBACKS) || defined(PAL_SPID1USE_WAIT)
 static void iton_bt_rx_cb(void *arg) {
+    uprintf("%s rx cb\n", __FUNCTION__);
     if (readPin(ITON_BT_INT_LINE)) {
         chSysLockFromISR();
         spiStartReceiveI(&ITON_BT_SPI_PORT, ITON_BT_RX_BUFFER_LEN, &iton_bt_rx[0]);
@@ -99,7 +102,9 @@ static void iton_bt_rx_cb(void *arg) {
                 iton_bt_led_state = iton_bt_rx[1];
                 break;
             case notification:
+                chSysLockFromISR();
                 chEvtSignalI(iton_bt_rx_thd, (eventmask_t)1);
+                chSysUnlockFromISR();
                 break;
         }
     }
@@ -108,6 +113,7 @@ static void iton_bt_rx_cb(void *arg) {
 static THD_FUNCTION(iton_bt_rx_thread, arg) {
     iton_bt_rx_thd = chThdGetSelfX();
     while(true) {
+        uprintf("%s rcv\n", __FUNCTION__);
         chEvtWaitAny((eventmask_t)1);
 
         switch (iton_bt_rx[1]) {
@@ -142,6 +148,7 @@ static THD_FUNCTION(iton_bt_rx_thread, arg) {
                         iton_bt_disconnected();
                         break;
                     case bt_enters_connection: // connection ready?
+                        iton_bt_enters_connection_state();
                         break;
 
                 }
@@ -162,18 +169,21 @@ void iton_bt_data_cb(SPIDriver *spip) {
 void iton_bt_init(void) {
     setPinOutput(ITON_BT_IRQ_LINE);
     setPinInput(ITON_BT_INT_LINE);
-
+    writePinLow(ITON_BT_IRQ_LINE); // <= or else while loops become infinite loops
 #if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
     chThdCreateStatic(iton_bt_rx_cb_wa, sizeof(iton_bt_rx_cb_wa), NORMALPRIO, iton_bt_rx_thread, NULL);
     palSetLineCallback(ITON_BT_INT_LINE, iton_bt_rx_cb, NULL);
     palEnableLineEvent(ITON_BT_INT_LINE, PAL_EVENT_MODE_BOTH_EDGES);
 #endif
-
+    print("iton_bt_init\n");
     spiStart(&ITON_BT_SPI_PORT, &iton_bt_spicfg);
 }
 
 void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
-    while (readPin(ITON_BT_IRQ_LINE));
+    while (readPin(ITON_BT_IRQ_LINE)) {
+        uprintf("%s ITON_BT_IRQ_LINE high\n", __FUNCTION__);
+    }
+    uprintf("%s ITON_BT_IRQ_LINE low\n", __FUNCTION__);
 
     writePinHigh(ITON_BT_IRQ_LINE);
     iton_bt_tx[0] = cmd;
@@ -182,7 +192,10 @@ void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
 }
 
 void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
-    while (readPin(ITON_BT_IRQ_LINE));
+    while (readPin(ITON_BT_IRQ_LINE)) {
+        uprintf("%s ITON_BT_IRQ_LINE high\n", __FUNCTION__);
+    }
+    uprintf("%s ITON_BT_IRQ_LINE low\n", __FUNCTION__);
     writePinHigh(ITON_BT_IRQ_LINE);
 
     iton_bt_tx[0] = cmd;

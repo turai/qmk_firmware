@@ -135,7 +135,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      */
     [FN2] = LAYOUT_60_ansi(
         Q_RESET, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12,  RGB_TOG,
-        BT_PA,   BT_PR1,  BT_PR2,  BT_PR3,  _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        BT_PA,   BT_PR1,  BT_PR2,  BT_PR3,  _______, _______, _______, _______, _______, _______, _______, _______, _______, BT_TOGGLE,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
         _______,          _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,          _______,
         _______, _______, _______,                            _______,                            _______, _______, _______, _______
@@ -159,7 +159,7 @@ bool dip_switch_update_user(uint8_t index, bool active){
 }
 void keyboard_post_init_user(void) {
   // Customise these values to desired behaviour
-  //debug_enable=true;
+  debug_enable=true;
   //debug_matrix=true;
   //debug_keyboard=true;
   //debug_mouse=true;

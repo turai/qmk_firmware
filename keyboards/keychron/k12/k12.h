@@ -23,7 +23,7 @@ enum K12_keycodes {
     BT_PROFILE2,
     BT_PROFILE3,
     BT_PAIR,
-    // BT_TOGGLE,
+    BT_TOGGLE,
     K12_SAFE_RANGE
 };
 
