@@ -99,7 +99,9 @@ static void iton_bt_rx_cb(void *arg) {
                 iton_bt_led_state = iton_bt_rx[1];
                 break;
             case notification:
+                chSysLockFromISR();
                 chEvtSignalI(iton_bt_rx_thd, (eventmask_t)1);
+                chSysUnlockFromISR();
                 break;
         }
     }
