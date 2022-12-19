@@ -142,6 +142,7 @@ static THD_FUNCTION(iton_bt_rx_thread, arg) {
                         iton_bt_disconnected();
                         break;
                     case bt_enters_connection: // connection ready?
+                        iton_bt_enters_connection_state();
                         break;
 
                 }
