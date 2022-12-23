@@ -6,10 +6,9 @@
 #include "gpio.h"
 #include "config.h"
 #include "iton_bt.h"
-#include "atomic_util.h"
 
 #ifndef ITON_BT_SPI_PORT
-#    define ITON_BT_SPI_PORT SPID1
+#    define ITON_BT_SPI_PORT SPID0
 #endif
 
 #ifndef ITON_BT_IRQ_LINE
@@ -43,7 +42,6 @@
 /**
  * Function definitions
  */
-static void iton_bt_rx_cb(void *arg);
 void iton_bt_data_cb(SPIDriver *spip);
 
 /**
@@ -68,11 +66,6 @@ static uint8_t iton_bt_rx[ITON_BT_RX_BUFFER_LEN];
 static uint8_t iton_bt_tx[ITON_BT_TX_BUFFER_LEN];
 uint8_t iton_bt_send_kb_last_key = 0x00;
 
-#if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
-static THD_WORKING_AREA(iton_bt_rx_cb_wa, 128);
-thread_t *iton_bt_rx_thd;
-#endif
-
 const SPIConfig iton_bt_spicfg = {
     .slave = true,
     .data_cb = iton_bt_data_cb,
@@ -83,7 +76,7 @@ const SPIConfig iton_bt_spicfg = {
 /**
  * Callbacks
  */
-#if defined(PAL_USE_CALLBACKS) || defined(PAL_SPID1USE_WAIT)
+#if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
 static void iton_bt_rx_cb(void *arg) {
     if (readPin(ITON_BT_INT_LINE)) {
         chSysLockFromISR();
@@ -99,55 +92,44 @@ static void iton_bt_rx_cb(void *arg) {
                 iton_bt_led_state = iton_bt_rx[1];
                 break;
             case notification:
-                chSysLockFromISR();
-                chEvtSignalI(iton_bt_rx_thd, (eventmask_t)1);
-                chSysUnlockFromISR();
-                break;
-        }
-    }
-}
+                switch (iton_bt_rx[1]) {
+                    case notif_battery:
+                        switch (iton_bt_rx[2]) {
+                            case batt_voltage_low:
+                                iton_bt_battery_voltage_low();
+                                break;
+                            case batt_exit_low_battery_mode:
+                                iton_bt_battery_exit_low_battery_mode();
+                                break;
+                            case batt_low_power_shutdown:
+                                iton_bt_battery_low_power_shutdown();
+                                break;
+                            case query_working_mode:
+                                break;
+                            case query_bt_name:
+                                break;
+                        }
+                        break;
+                    case notif_bluetooth:
+                        switch (iton_bt_rx[2]) {
+                            case bt_connection_success:
+                                iton_bt_is_connected = true;
+                                iton_bt_connection_successful();
+                                break;
+                            case bt_entered_pairing:
+                                iton_bt_entered_pairing();
+                                break;
+                            case bt_disconected:
+                                iton_bt_is_connected = false;
+                                iton_bt_disconnected();
+                                break;
+                            case bt_enters_connection:
+                                iton_bt_enters_connection_state();
+                                break;
 
-static THD_FUNCTION(iton_bt_rx_thread, arg) {
-    iton_bt_rx_thd = chThdGetSelfX();
-    while(true) {
-        chEvtWaitAny((eventmask_t)1);
-
-        switch (iton_bt_rx[1]) {
-            case notif_battery:
-                switch (iton_bt_rx[2]) {
-                    case batt_voltage_low:
-                        iton_bt_battery_voltage_low();
+                        }
                         break;
-                    case batt_exit_low_battery_mode:
-                        iton_bt_battery_exit_low_battery_mode();
-                        break;
-                    case batt_low_power_shutdown:
-                        iton_bt_battery_low_power_shutdown();
-                        break;
-                    case query_working_mode:
-                        break;
-                    case query_bt_name:
-                        break;
-                }
-                break;
-            case notif_bluetooth:
-                switch (iton_bt_rx[2]) {
-                    case bt_connection_success:
-                        iton_bt_is_connected = true;
-                        iton_bt_connection_successful();
-                        break;
-                    case bt_entered_pairing:
-                        iton_bt_entered_pairing();
-                        break;
-                    case bt_disconected:
-                        iton_bt_is_connected = false;
-                        iton_bt_disconnected();
-                        break;
-                    case bt_enters_connection: // connection ready?
-                        iton_bt_enters_connection_state();
-                        break;
-
-                }
+                    }
                 break;
         }
     }
@@ -166,8 +148,9 @@ void iton_bt_init(void) {
     setPinOutput(ITON_BT_IRQ_LINE);
     setPinInput(ITON_BT_INT_LINE);
 
+    writePinLow(ITON_BT_IRQ_LINE);
+
 #if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
-    chThdCreateStatic(iton_bt_rx_cb_wa, sizeof(iton_bt_rx_cb_wa), NORMALPRIO, iton_bt_rx_thread, NULL);
     palSetLineCallback(ITON_BT_INT_LINE, iton_bt_rx_cb, NULL);
     palEnableLineEvent(ITON_BT_INT_LINE, PAL_EVENT_MODE_BOTH_EDGES);
 #endif
@@ -178,6 +161,7 @@ void iton_bt_init(void) {
 void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
     while (readPin(ITON_BT_IRQ_LINE));
 
+
     writePinHigh(ITON_BT_IRQ_LINE);
     iton_bt_tx[0] = cmd;
     memcpy(&iton_bt_tx[1], data, len);
@@ -186,8 +170,8 @@ void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
 
 void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
     while (readPin(ITON_BT_IRQ_LINE));
-    writePinHigh(ITON_BT_IRQ_LINE);
 
+    writePinHigh(ITON_BT_IRQ_LINE);
     iton_bt_tx[0] = cmd;
     iton_bt_tx[1] = b1;
     iton_bt_tx[2] = b2;
