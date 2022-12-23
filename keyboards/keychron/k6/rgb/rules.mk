@@ -2,6 +2,8 @@
 MCU = SN32F248BF
 BOOTLOADER = sn32-dfu
 
+TOP_SYMBOLS = yes
+
 # Build Options
 #   comment out to disable the options.
 #
@@ -13,6 +15,10 @@ EXTRAKEY_ENABLE 		= yes   # Audio control and System control
 CONSOLE_ENABLE 			= no     # Console for debug
 COMMAND_ENABLE 			= no     # Commands for debug and configuration
 NKRO_ENABLE 			= yes       # USB Nkey Rollover
+VIA_ENABLE = yes
+
+EEPROM_DRIVER = wear_leveling
+WEAR_LEVELING_DRIVER = sn32_flash
 
 WAIT_FOR_USB 			= no
 KEYBOARD_SHARED_EP 		= yes

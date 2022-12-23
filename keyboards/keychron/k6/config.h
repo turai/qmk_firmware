@@ -15,5 +15,7 @@
  */
 
 #pragma once
-
+#define WEAR_LEVELING_SN32_EMULATION_PAGE_COUNT 49
+#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1536
+#define VIA_QMK_RGBLIGHT_ENABLE
 #include "config_common.h"
