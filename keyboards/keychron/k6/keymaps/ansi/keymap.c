@@ -155,7 +155,10 @@ void iton_bt_connection_successful() {
 }
 
 void iton_bt_enters_connection_state() {
-    iton_bt_mode_bt();
+    uint8_t buf[] = {0xA6, 0x51, 0x62};
+    chSysLockFromISR();
+    spiStartSendI(&SPID0, 3, &buf[0]);
+    chSysUnlockFromISR();
 }
 
 bool dip_switch_update_user(uint8_t index, bool active) {
