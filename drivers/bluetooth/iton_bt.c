@@ -78,7 +78,6 @@ const SPIConfig iton_bt_spicfg = {
  */
 #if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
 static void iton_bt_rx_cb(void *arg) {
-    uprintf("%s rx cb\n", __FUNCTION__);
     if (readPin(ITON_BT_INT_LINE)) {
         chSysLockFromISR();
         spiStartReceiveI(&ITON_BT_SPI_PORT, ITON_BT_RX_BUFFER_LEN, &iton_bt_rx[0]);
@@ -155,7 +154,6 @@ void iton_bt_init(void) {
     palSetLineCallback(ITON_BT_INT_LINE, iton_bt_rx_cb, NULL);
     palEnableLineEvent(ITON_BT_INT_LINE, PAL_EVENT_MODE_BOTH_EDGES);
 #endif
-    print("iton_bt_init\n");
     spiStart(&ITON_BT_SPI_PORT, &iton_bt_spicfg);
 }
 

@@ -24,24 +24,23 @@ void keyboard_post_init_kb(void) {
 
 }
 
-void iton_bt_enters_connection_state() {
-    iton_bt_mode_bt();
-}
-
 void iton_bt_connection_successful() {
     set_output(OUTPUT_BLUETOOTH);
 }
 
+void iton_bt_enters_connection_state() {
+    uint8_t buf[] = {0xA6, 0x51, 0x62};
+    chSysLockFromISR();
+    spiStartSendI(&SPID0, 3, &buf[0]);
+    chSysUnlockFromISR();
+}
+
 bool dip_switch_update_kb(uint8_t index, bool active) {
     if(index == 1) {
-        #ifdef ___BLUETOOTH_ENABLE
+        #ifdef BLUETOOTH_ENABLE
         if(active) {
             set_output(OUTPUT_USB);
         } else {
-            if(!iton_bt_initialized) {
-                iton_bt_mode_bt();
-                iton_bt_initialized = true;
-            }
             set_output(OUTPUT_BLUETOOTH);
         }
         #endif
