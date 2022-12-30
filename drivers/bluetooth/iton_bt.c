@@ -111,8 +111,8 @@ static void iton_bt_rx_cb(void *arg) {
                                 iton_bt_is_connected = true;
                                 #ifdef ITON_BT_ENABLE_ACK
                                 chSysLockFromISR();
-                                uint8_t buf[] = {0xA6, 0x51, 0x50};
-                                spiStartSendI(&SPID0, 3, &buf[0]);
+                                uint8_t connect_ack_buf[] = {0xA6, 0x51, 0x50};
+                                spiStartSendI(&SPID0, 3, &connect_ack_buf[0]);
                                 chSysUnlockFromISR();
                                 #endif
                                 iton_bt_connection_successful();
@@ -124,16 +124,16 @@ static void iton_bt_rx_cb(void *arg) {
                                 iton_bt_is_connected = false;
                                 #ifdef ITON_BT_ENABLE_ACK
                                 chSysLockFromISR();
-                                uint8_t buf[] = {0xA6, 0x51, 0x51};
-                                spiStartSendI(&SPID0, 3, &buf[0]);
+                                uint8_t disconnect_ack_buf[] = {0xA6, 0x51, 0x51};
+                                spiStartSendI(&SPID0, 3, &disconnect_ack_buf[0]);
                                 chSysUnlockFromISR();
                                 #endif
                                 iton_bt_disconnected();
                                 break;
                             case bt_enters_connection:
                                 chSysLockFromISR();
-                                uint8_t buf[] = {0xA6, 0x51, 0x62};
-                                spiStartSendI(&SPID0, 3, &buf[0]);
+                                uint8_t enters_connection_buf[] = {0xA6, 0x51, 0x62};
+                                spiStartSendI(&SPID0, 3, &enters_connection_buf[0]);
                                 chSysUnlockFromISR();
 
                                 iton_bt_enters_connection_state();
