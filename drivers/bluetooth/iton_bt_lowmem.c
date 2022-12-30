@@ -1,0 +1,165 @@
+// Copyright 2022 1Conan (@1Conan)
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include <string.h>
+#include <hal.h>
+#include "gpio.h"
+#include "config.h"
+#include "sn32_spi.h"
+#include "iton_bt.h"
+
+#define SN32_SPI0 ((sn32_spi_t *)SN_SPI0_BASE)
+
+#ifndef ITON_BT_IRQ_LINE
+#    define ITON_BT_IRQ_LINE A0
+#endif
+
+#ifndef ITON_BT_INT_LINE
+#    define ITON_BT_INT_LINE A1
+#endif
+
+#ifdef KEYBOARD_SHARED_EP
+#    define HID_REPORT_OFFSET 1
+#else
+#    define HID_REPORT_OFFSET 0
+#endif
+
+#ifndef ITON_BT_BUFFER_LEN
+#    define ITON_BT_BUFFER_LEN 16
+#endif
+
+/**
+ * Driver Macros
+ */
+#define HIGH_BITS(x)         ((uint8_t)(x >> 8))
+#define LOW_BITS(x)          ((uint8_t)(x & 0x00FF))
+
+/**
+ * Function definitions
+ */
+
+/**
+ * Callbacks
+ */
+__attribute__((weak)) void iton_bt_battery_voltage_low(void) {}
+__attribute__((weak)) void iton_bt_battery_exit_low_battery_mode(void) {}
+__attribute__((weak)) void iton_bt_battery_low_power_shutdown(void) {}
+
+__attribute__((weak)) void iton_bt_connection_successful(void) {}
+__attribute__((weak)) void iton_bt_entered_pairing(void) {}
+__attribute__((weak)) void iton_bt_disconnected(void) {}
+__attribute__((weak)) void iton_bt_enters_connection_state(void) {}
+
+/**
+ * Driver variables
+ */
+bool iton_bt_is_connected = false;
+uint8_t iton_bt_led_state = 0x00;
+
+static uint8_t iton_bt_count = 0;
+static uint8_t iton_bt_index = 0;
+static uint8_t iton_bt_buffer[ITON_BT_BUFFER_LEN];
+uint8_t iton_bt_send_kb_last_key = 0x00;
+
+/**
+ * Driver Functions
+ */
+void iton_bt_init(void) {
+    setPinOutput(ITON_BT_IRQ_LINE);
+    setPinInput(ITON_BT_INT_LINE);
+
+    writePinLow(ITON_BT_IRQ_LINE);
+
+    sys1EnableSPI0();
+
+    SN32_SPI0->CTRL0_b.DL = 7;
+    SN32_SPI0->CTRL0_b.MS = true;
+    SN32_SPI0->CTRL0_b.SDODIS = false;
+    SN32_SPI0->CTRL0_b.SELDIS = false;
+    SN32_SPI0->CTRL1 = 0;
+    SN32_SPI0->CLKDIV = 2;
+    SN32_SPI0->CTRL0_b.FRESET = 0b11;
+
+    SN32_SPI0->IC = 0b1111;
+    SN32_SPI0->IE = 0b0100;
+
+    nvicClearPending(SN32_SPI0_NUMBER);
+    nvicEnableVector(SN32_SPI0_NUMBER, 0);
+
+    SN32_SPI0->CTRL0_b.SPIEN = true;
+}
+
+void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
+    while (readPin(ITON_BT_IRQ_LINE));
+
+    writePinHigh(ITON_BT_IRQ_LINE);
+    iton_bt_index = 0;
+    iton_bt_count = len + 1;
+    iton_bt_buffer[0] = cmd;
+    memcpy(&iton_bt_buffer[1], data, len);
+
+    SN32_SPI0->DATA = iton_bt_buffer[0];
+}
+
+void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
+    while (readPin(ITON_BT_IRQ_LINE));
+
+    writePinHigh(ITON_BT_IRQ_LINE);
+    iton_bt_index = 0;
+    iton_bt_count = 3;
+    iton_bt_buffer[0] = cmd;
+    iton_bt_buffer[1] = b1;
+    iton_bt_buffer[2] = b2;
+
+    SN32_SPI0->DATA = iton_bt_buffer[0];
+}
+
+void iton_bt_send_fn(bool pressed) {
+    uint8_t data = pressed ? 0xA3 : 0x00;
+
+    iton_bt_send(report_fn, &data, 1);
+}
+
+void iton_bt_send_system(uint16_t data) {
+    iton_bt_send(report_system, (uint8_t *)&data, 1);
+}
+
+void iton_bt_send_consumer(uint16_t data) {
+    iton_bt_send2(report_consumer, HIGH_BITS(data), LOW_BITS(data));
+}
+
+void iton_bt_send_keyboard(report_keyboard_t *report) {
+    // iton module only reads 5 of the keys in the hid report
+    // so we send the last key as an nkro report.
+    if (report->keys[5] != iton_bt_send_kb_last_key) {
+        uint8_t nkro_report[15] = {0};
+        nkro_report[report->keys[5] >> 3] |= (1 << (report->keys[5] & 7));
+        iton_bt_send_kb_last_key = report->keys[5];
+
+        return iton_bt_send(report_nkro, &nkro_report[0], 15);
+    }
+
+    iton_bt_send(report_hid, &report->raw[HID_REPORT_OFFSET], 8);
+}
+
+OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
+    OSAL_IRQ_PROLOGUE();
+    if (SN32_SPI0->RIS_b.RXFIFOTHIF) {
+        chSysLockFromISR();
+        uint16_t data = SN32_SPI0->DATA;
+        SN32_SPI0->IC_b.RXFIFOTHIC = true;
+        chSysUnlockFromISR();
+
+        if (!readPin(ITON_BT_INT_LINE)) {
+            if (++(iton_bt_index) >= iton_bt_count) {
+                writePinLow(ITON_BT_IRQ_LINE);
+            } else {
+                SN32_SPI0->DATA = iton_bt_buffer[iton_bt_index];
+            }
+        } else {
+            iton_bt_buffer[++iton_bt_index] = data;
+            SN32_SPI0->DATA = 0x00;
+        }
+    }
+    OSAL_IRQ_EPILOGUE();
+}
