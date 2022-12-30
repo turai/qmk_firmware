@@ -10,13 +10,13 @@
 /**
  * PAL driver settings
  */
-#define PAL_USE_CALLBACKS               TRUE
+// #define PAL_USE_CALLBACKS               TRUE
 #define SN32_GPIOA_IRQ_PRIORITY         0
 
 /**
  * SPI driver settings
  */
-#define HAL_USE_SPI                     TRUE
+// #define HAL_USE_SPI                     TRUE
 #define SPI_USE_MUTUAL_EXCLUSION        FALSE
 #define SPI_USE_WAIT                    FALSE
 #define SPI_USE_ASSERT_ON_ERROR         FALSE
