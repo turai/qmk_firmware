@@ -109,6 +109,12 @@ static void iton_bt_rx_cb(void *arg) {
                         switch (iton_bt_buffer[2]) {
                             case bt_connection_success:
                                 iton_bt_is_connected = true;
+                                #ifdef ITON_BT_ENABLE_ACK
+                                chSysLockFromISR();
+                                uint8_t buf[] = {0xA6, 0x51, 0x50};
+                                spiStartSendI(&SPID0, 3, &buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
                                 iton_bt_connection_successful();
                                 break;
                             case bt_entered_pairing:
@@ -116,9 +122,20 @@ static void iton_bt_rx_cb(void *arg) {
                                 break;
                             case bt_disconected:
                                 iton_bt_is_connected = false;
+                                #ifdef ITON_BT_ENABLE_ACK
+                                chSysLockFromISR();
+                                uint8_t buf[] = {0xA6, 0x51, 0x51};
+                                spiStartSendI(&SPID0, 3, &buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
                                 iton_bt_disconnected();
                                 break;
                             case bt_enters_connection:
+                                chSysLockFromISR();
+                                uint8_t buf[] = {0xA6, 0x51, 0x62};
+                                spiStartSendI(&SPID0, 3, &buf[0]);
+                                chSysUnlockFromISR();
+
                                 iton_bt_enters_connection_state();
                                 break;
 
