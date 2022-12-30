@@ -4,6 +4,8 @@
 /**
  * SPI driver settings
  */
-// #define SN32_SPI_USE_SPI0   TRUE
+#ifdef BLUETOOTH_ITON_BT
+#define SN32_SPI_USE_SPI0   TRUE
+#endif
 
 #include_next <mcuconf.h>

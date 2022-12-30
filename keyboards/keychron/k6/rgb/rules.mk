@@ -24,7 +24,8 @@ WAIT_FOR_USB 			= no
 KEYBOARD_SHARED_EP 		= yes
 
 BLUETOOTH_ENABLE 		= yes
-BLUETOOTH_DRIVER 		= ItonBTLowMem
+BLUETOOTH_DRIVER		= ItonBT
+# BLUETOOTH_DRIVER 		= ItonBTLowMem
 DIP_SWITCH_ENABLE 		= yes
 
 # Custom RGB matrix handling
