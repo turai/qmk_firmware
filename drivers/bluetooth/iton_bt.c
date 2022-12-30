@@ -25,12 +25,8 @@
 #    define HID_REPORT_OFFSET 0
 #endif
 
-#ifndef ITON_BT_RX_BUFFER_LEN
-#    define ITON_BT_RX_BUFFER_LEN 3
-#endif
-
-#ifndef ITON_BT_TX_BUFFER_LEN
-#    define ITON_BT_TX_BUFFER_LEN 16
+#ifndef ITON_BT_BUFFER_LEN
+#    define ITON_BT_BUFFER_LEN 16
 #endif
 
 /**
@@ -62,8 +58,7 @@ __attribute__((weak)) void iton_bt_enters_connection_state(void) {}
 bool iton_bt_is_connected = false;
 uint8_t iton_bt_led_state = 0x00;
 
-static uint8_t iton_bt_rx[ITON_BT_RX_BUFFER_LEN];
-static uint8_t iton_bt_tx[ITON_BT_TX_BUFFER_LEN];
+static uint8_t iton_bt_buffer[ITON_BT_BUFFER_LEN];
 uint8_t iton_bt_send_kb_last_key = 0x00;
 
 const SPIConfig iton_bt_spicfg = {
@@ -80,21 +75,21 @@ const SPIConfig iton_bt_spicfg = {
 static void iton_bt_rx_cb(void *arg) {
     if (readPin(ITON_BT_INT_LINE)) {
         chSysLockFromISR();
-        spiStartReceiveI(&ITON_BT_SPI_PORT, ITON_BT_RX_BUFFER_LEN, &iton_bt_rx[0]);
+        spiStartReceiveI(&ITON_BT_SPI_PORT, ITON_BT_BUFFER_LEN, &iton_bt_buffer[0]);
         chSysUnlockFromISR();
     } else {
         chSysLockFromISR();
         spiStopTransferI(&ITON_BT_SPI_PORT, NULL);
         chSysUnlockFromISR();
 
-        switch (iton_bt_rx[0]) {
+        switch (iton_bt_buffer[0]) {
             case led_state:
-                iton_bt_led_state = iton_bt_rx[1];
+                iton_bt_led_state = iton_bt_buffer[1];
                 break;
             case notification:
-                switch (iton_bt_rx[1]) {
+                switch (iton_bt_buffer[1]) {
                     case notif_battery:
-                        switch (iton_bt_rx[2]) {
+                        switch (iton_bt_buffer[2]) {
                             case batt_voltage_low:
                                 iton_bt_battery_voltage_low();
                                 break;
@@ -111,7 +106,7 @@ static void iton_bt_rx_cb(void *arg) {
                         }
                         break;
                     case notif_bluetooth:
-                        switch (iton_bt_rx[2]) {
+                        switch (iton_bt_buffer[2]) {
                             case bt_connection_success:
                                 iton_bt_is_connected = true;
                                 iton_bt_connection_successful();
@@ -163,20 +158,20 @@ void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
 
 
     writePinHigh(ITON_BT_IRQ_LINE);
-    iton_bt_tx[0] = cmd;
-    memcpy(&iton_bt_tx[1], data, len);
-    spiStartSend(&ITON_BT_SPI_PORT, len + 1, &iton_bt_tx[0]);
+    iton_bt_buffer[0] = cmd;
+    memcpy(&iton_bt_buffer[1], data, len);
+    spiStartSend(&ITON_BT_SPI_PORT, len + 1, &iton_bt_buffer[0]);
 }
 
 void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
     while (readPin(ITON_BT_IRQ_LINE));
 
     writePinHigh(ITON_BT_IRQ_LINE);
-    iton_bt_tx[0] = cmd;
-    iton_bt_tx[1] = b1;
-    iton_bt_tx[2] = b2;
+    iton_bt_buffer[0] = cmd;
+    iton_bt_buffer[1] = b1;
+    iton_bt_buffer[2] = b2;
 
-    spiStartSend(&ITON_BT_SPI_PORT, 3, &iton_bt_tx[0]);
+    spiStartSend(&ITON_BT_SPI_PORT, 3, &iton_bt_buffer[0]);
 }
 
 void iton_bt_send_fn(bool pressed) {
