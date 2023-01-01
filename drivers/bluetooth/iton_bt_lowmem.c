@@ -72,11 +72,20 @@ void iton_bt_init(void) {
 
     sys1EnableSPI0();
 
-    SN32_SPI0->CTRL0_b.DL = 7;
-    SN32_SPI0->CTRL0_b.MS = true;
-    SN32_SPI0->CTRL0_b.SDODIS = false;
-    SN32_SPI0->CTRL0_b.SELDIS = false;
-    SN32_SPI0->CTRL1 = 0;
+#define SPI_DL_8 (7 << 8)
+#define SPI_SLAVE_MODE (1 << 3)
+#define SPI_AUTOSEL_ENABLE (0 << 18)
+#define SPI_SLAVE_DATA_OUTPUT_ENABLE (0 << 2)
+
+    SN32_SPI0->CTRL0 = SPI_DL_8 | SPI_SLAVE_MODE | SPI_AUTOSEL_ENABLE | SPI_SLAVE_DATA_OUTPUT_ENABLE;
+
+    // SN32_SPI0->CTRL0_b.DL = 7;
+    // SN32_SPI0->CTRL0_b.MS = true;
+    // SN32_SPI0->CTRL0_b.SDODIS = false;
+    // SN32_SPI0->CTRL0_b.SELDIS = false;
+
+    // already the default value
+    // SN32_SPI0->CTRL1 = 0;
     SN32_SPI0->CLKDIV = 2;
     SN32_SPI0->CTRL0_b.FRESET = 0b11;
 
@@ -86,7 +95,7 @@ void iton_bt_init(void) {
     nvicClearPending(SN32_SPI0_NUMBER);
     nvicEnableVector(SN32_SPI0_NUMBER, 0);
 
-    SN32_SPI0->CTRL0_b.SPIEN = true;
+    SN32_SPI0->CTRL0 |= (1 << 0);
 }
 
 void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
@@ -102,16 +111,8 @@ void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
 }
 
 void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
-    while (readPin(ITON_BT_IRQ_LINE));
-
-    writePinHigh(ITON_BT_IRQ_LINE);
-    iton_bt_index = 0;
-    iton_bt_count = 3;
-    iton_bt_buffer[0] = cmd;
-    iton_bt_buffer[1] = b1;
-    iton_bt_buffer[2] = b2;
-
-    SN32_SPI0->DATA = iton_bt_buffer[0];
+    uint8_t buf[] = {b1, b1};
+    iton_bt_send(cmd, &buf[0], 2);
 }
 
 void iton_bt_send_fn(bool pressed) {
@@ -146,8 +147,8 @@ OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
     OSAL_IRQ_PROLOGUE();
     if (SN32_SPI0->RIS_b.RXFIFOTHIF) {
         chSysLockFromISR();
-        uint16_t data = SN32_SPI0->DATA;
-        SN32_SPI0->IC_b.RXFIFOTHIC = true;
+        uint8_t data = SN32_SPI0->DATA;
+        SN32_SPI0->IC = 0b0100;
         chSysUnlockFromISR();
 
         if (!readPin(ITON_BT_INT_LINE)) {
