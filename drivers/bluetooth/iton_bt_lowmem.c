@@ -152,13 +152,62 @@ OSAL_IRQ_HANDLER(SN32_SPI0_HANDLER) {
 
         if (!readPin(ITON_BT_INT_LINE)) {
             if (++(iton_bt_index) >= iton_bt_count) {
+                iton_bt_index = 0;
                 writePinLow(ITON_BT_IRQ_LINE);
             } else {
                 SN32_SPI0->DATA = iton_bt_buffer[iton_bt_index];
             }
         } else {
-            iton_bt_buffer[++iton_bt_index] = data;
+            iton_bt_buffer[iton_bt_index++] = data;
             SN32_SPI0->DATA = 0x00;
+
+            if (iton_bt_buffer[0] == led_state && iton_bt_index == 2) {
+                iton_bt_index = 0;
+                iton_bt_led_state = iton_bt_buffer[1];
+            } else if (iton_bt_buffer[0] == notification && iton_bt_index == 4) {
+                iton_bt_index = 0;
+                switch (iton_bt_buffer[1]) {
+                    case notif_battery:
+                        switch (iton_bt_buffer[2]) {
+                            case batt_voltage_low:
+                                iton_bt_battery_voltage_low();
+                                break;
+                            case batt_exit_low_battery_mode:
+                                iton_bt_battery_exit_low_battery_mode();
+                                break;
+                            case batt_low_power_shutdown:
+                                iton_bt_battery_low_power_shutdown();
+                                break;
+                            case query_working_mode:
+                                break;
+                            case query_bt_name:
+                                break;
+                        }
+                        break;
+                    case notif_bluetooth:
+                        switch (iton_bt_buffer[2]) {
+                            case bt_connection_success:
+                                iton_bt_is_connected = true;
+                                iton_bt_connection_successful();
+                                break;
+                            case bt_entered_pairing:
+                                iton_bt_entered_pairing();
+                                break;
+                            case bt_disconected:
+                                iton_bt_is_connected = false;
+                                iton_bt_disconnected();
+                                break;
+                            case bt_enters_connection:
+                                chSysLockFromISR();
+                                iton_bt_mode_bt();
+                                chSysUnlockFromISR();
+
+                                iton_bt_enters_connection_state();
+                                break;
+                        }
+                        break;
+                }
+            }
         }
     }
     OSAL_IRQ_EPILOGUE();
