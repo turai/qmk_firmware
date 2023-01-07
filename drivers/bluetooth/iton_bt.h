@@ -38,12 +38,17 @@ enum iton_bt_control_param {
     mode_bt         = 0x62,
     reset_pairing   = 0x70,
     enter_pairing   = 0x89,
-    switch_profile  = 0x81, // + 0-5 profiles
+    switch_profile   = 0x81, // + 0-5 profiles
     os_mac          = 0x74,
     os_win          = 0x75,
     connect_ack     = 0x50,
     disconnect_ack  = 0x51,
     query_voltage   = 0x66,
+
+    query_battery_level = 0x61,
+
+    disable_sleep   = 0x65,
+    enable_sleep    = 0x68,
 };
 
 enum iton_bt_notification_type {
@@ -122,3 +127,7 @@ void iton_bt_enters_connection_state(void);
 #define iton_bt_connect_ack()       iton_bt_control_bt(connect_ack)
 #define iton_bt_disconnect_ack()    iton_bt_control_bt(disconnect_ack)
 #define iton_bt_query_voltage()     iton_bt_control_bt(query_voltage)
+
+#define iton_bt_query_battery_level() iton_bt_control_bt(query_battery_level)
+#define iton_bt_disable_sleep()     iton_bt_control_bt(disable_sleep)
+#define iton_bt_enable_sleep()      iton_bt_control_bt(enable_sleep)
