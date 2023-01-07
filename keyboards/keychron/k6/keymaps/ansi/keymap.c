@@ -150,7 +150,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 };
 
-bool iton_bt_initialized = false;
+void iton_bt_connection_successful() {
+    set_output(OUTPUT_BLUETOOTH);
+}
 
 bool dip_switch_update_user(uint8_t index, bool active) {
     switch (index) {
@@ -167,12 +169,7 @@ bool dip_switch_update_user(uint8_t index, bool active) {
             if (active) {
                 set_output(OUTPUT_USB);
             } else {
-
-                if (!iton_bt_initialized) {
-                    iton_bt_mode_bt();
-                    iton_bt_initialized = true;
-                }
-                set_output(OUTPUT_BLUETOOTH);
+                set_output(OUTPUT_NONE);
             }
             #endif
         break;

@@ -23,6 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    include "iton_bt.h"
 #endif
 
+#ifdef BLUETOOTH_ITON_BT_LOWMEM
+#    include "iton_bt_lowmem.h"
+#endif
+
 uint8_t desired_output = OUTPUT_DEFAULT;
 
 /** \brief Set Output
@@ -55,7 +59,7 @@ uint8_t auto_detect_output(void) {
     }
 #endif
 
-#ifdef BLUETOOTH_ITON_BT
+#if BLUETOOTH_ITON_BT || BLUETOOTH_ITON_BT_LOWMEM
     if (iton_bt_is_connected) {
         return OUTPUT_BLUETOOTH;
     }

@@ -1,4 +1,4 @@
-/* Copyright 2022 Philip Mourdjis <philip.j.m@gmail.com>
+/* Copyright 2022 Dimitris Mantzouranis <d3xter93@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-#define WEAR_LEVELING_SN32_EMULATION_PAGE_COUNT 49
-#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1536
-#define VIA_QMK_RGBLIGHT_ENABLE
-#include "config_common.h"
+/* USB Device descriptor parameter */
+#define PRODUCT_ID      0xFE02
+#define DEVICE_VER      0x0001
+
+/* RGB LED Config */
+#define DRIVER_LED_TOTAL (100)
+#define RGB_MATRIX_LED_COUNT 100

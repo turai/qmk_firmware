@@ -52,9 +52,6 @@ extern keymap_config_t keymap_config;
 
 #ifdef BLUETOOTH_ENABLE
 #    include "outputselect.h"
-#    ifdef BLUETOOTH_ITON_BT
-#        include "iton_bt.h"
-#    endif
 #endif
 
 /* ---------------------------------------------------------
@@ -839,16 +836,7 @@ static void keyboard_idle_timer_cb(void *arg) {
 }
 
 /* LED status */
-uint8_t keyboard_leds(void) {
-#ifdef BLUETOOTH_ENABLE
-    if (where_to_send() == OUTPUT_BLUETOOTH) {
-#    ifdef BLUETOOTH_ITON_BT
-        return iton_bt_led_state;
-#    endif
-    }
-#endif
-    return keyboard_led_state;
-}
+uint8_t keyboard_leds(void) { return keyboard_led_state; }
 
 /* prepare and start sending a report IN
  * not callable from ISR or locked state */

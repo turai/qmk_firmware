@@ -15,7 +15,20 @@
  */
 
 #pragma once
-#define WEAR_LEVELING_SN32_EMULATION_PAGE_COUNT 49
-#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1536
-#define VIA_QMK_RGBLIGHT_ENABLE
-#include "config_common.h"
+
+#include "quantum.h"
+
+enum K6_keycodes {
+    BT_PROFILE1 = SAFE_RANGE,
+    BT_PROFILE2,
+    BT_PROFILE3,
+    BT_PAIR,
+    BT_TOGGLE,
+    K4_SAFE_RANGE
+};
+
+#if defined(KEYBOARD_keychron_k4_rgb)
+    #include "rgb.h"
+#elif defined(KEYBOARD_keychron_k4_white)
+    #include "white.h"
+#endif

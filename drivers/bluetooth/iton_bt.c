@@ -6,12 +6,9 @@
 #include "gpio.h"
 #include "config.h"
 #include "iton_bt.h"
-#include "atomic_util.h"
-
-#include "print.h"
 
 #ifndef ITON_BT_SPI_PORT
-#    define ITON_BT_SPI_PORT SPID1
+#    define ITON_BT_SPI_PORT SPID0
 #endif
 
 #ifndef ITON_BT_IRQ_LINE
@@ -28,12 +25,8 @@
 #    define HID_REPORT_OFFSET 0
 #endif
 
-#ifndef ITON_BT_RX_BUFFER_LEN
-#    define ITON_BT_RX_BUFFER_LEN 3
-#endif
-
-#ifndef ITON_BT_TX_BUFFER_LEN
-#    define ITON_BT_TX_BUFFER_LEN 16
+#ifndef ITON_BT_BUFFER_LEN
+#    define ITON_BT_BUFFER_LEN 16
 #endif
 
 /**
@@ -45,7 +38,6 @@
 /**
  * Function definitions
  */
-static void iton_bt_rx_cb(void *arg);
 void iton_bt_data_cb(SPIDriver *spip);
 
 /**
@@ -66,14 +58,8 @@ __attribute__((weak)) void iton_bt_enters_connection_state(void) {}
 bool iton_bt_is_connected = false;
 uint8_t iton_bt_led_state = 0x00;
 
-static uint8_t iton_bt_rx[ITON_BT_RX_BUFFER_LEN];
-static uint8_t iton_bt_tx[ITON_BT_TX_BUFFER_LEN];
+static uint8_t iton_bt_buffer[ITON_BT_BUFFER_LEN];
 uint8_t iton_bt_send_kb_last_key = 0x00;
-
-#if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
-static THD_WORKING_AREA(iton_bt_rx_cb_wa, 128);
-thread_t *iton_bt_rx_thd;
-#endif
 
 const SPIConfig iton_bt_spicfg = {
     .slave = true,
@@ -85,73 +71,98 @@ const SPIConfig iton_bt_spicfg = {
 /**
  * Callbacks
  */
-#if defined(PAL_USE_CALLBACKS) || defined(PAL_SPID1USE_WAIT)
+#if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
 static void iton_bt_rx_cb(void *arg) {
-    uprintf("%s rx cb\n", __FUNCTION__);
     if (readPin(ITON_BT_INT_LINE)) {
         chSysLockFromISR();
-        spiStartReceiveI(&ITON_BT_SPI_PORT, ITON_BT_RX_BUFFER_LEN, &iton_bt_rx[0]);
+        spiStartReceiveI(&ITON_BT_SPI_PORT, ITON_BT_BUFFER_LEN, &iton_bt_buffer[0]);
         chSysUnlockFromISR();
     } else {
         chSysLockFromISR();
         spiStopTransferI(&ITON_BT_SPI_PORT, NULL);
         chSysUnlockFromISR();
 
-        switch (iton_bt_rx[0]) {
+        switch (iton_bt_buffer[0]) {
             case led_state:
-                iton_bt_led_state = iton_bt_rx[1];
+                iton_bt_led_state = iton_bt_buffer[1];
                 break;
             case notification:
-                chSysLockFromISR();
-                chEvtSignalI(iton_bt_rx_thd, (eventmask_t)1);
-                chSysUnlockFromISR();
-                break;
-        }
-    }
-}
+                switch (iton_bt_buffer[1]) {
+                    case notif_battery:
+                        switch (iton_bt_buffer[2]) {
+                            case batt_voltage_low:
+                                iton_bt_battery_voltage_low();
+                                break;
+                            case batt_exit_low_battery_mode:
+                                iton_bt_battery_exit_low_battery_mode();
+                                break;
+                            case batt_low_power_shutdown:
+                                iton_bt_battery_low_power_shutdown();
+                                break;
+                            case query_working_mode:
+                                break;
+                            case query_bt_name:
+                                break;
+                        }
+                        break;
+                    case notif_bluetooth:
+                        switch (iton_bt_buffer[2]) {
+                            case bt_connection_success:
+                                iton_bt_is_connected = true;
 
-static THD_FUNCTION(iton_bt_rx_thread, arg) {
-    iton_bt_rx_thd = chThdGetSelfX();
-    while(true) {
-        uprintf("%s rcv\n", __FUNCTION__);
-        chEvtWaitAny((eventmask_t)1);
+                                #ifdef ITON_BT_ENABLE_ACK
+                                while (readPin(ITON_BT_IRQ_LINE));
+                                writePinHigh(ITON_BT_IRQ_LINE);
+                                uint8_t connect_ack_buf[] = {0xA6, 0x51, 0x50};
+                                chSysLockFromISR();
+                                spiStartSendI(&SPID0, 3, &connect_ack_buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
 
-        switch (iton_bt_rx[1]) {
-            case notif_battery:
-                switch (iton_bt_rx[2]) {
-                    case batt_voltage_low:
-                        iton_bt_battery_voltage_low();
-                        break;
-                    case batt_exit_low_battery_mode:
-                        iton_bt_battery_exit_low_battery_mode();
-                        break;
-                    case batt_low_power_shutdown:
-                        iton_bt_battery_low_power_shutdown();
-                        break;
-                    case query_working_mode:
-                        break;
-                    case query_bt_name:
-                        break;
-                }
-                break;
-            case notif_bluetooth:
-                switch (iton_bt_rx[2]) {
-                    case bt_connection_success:
-                        iton_bt_is_connected = true;
-                        iton_bt_connection_successful();
-                        break;
-                    case bt_entered_pairing:
-                        iton_bt_entered_pairing();
-                        break;
-                    case bt_disconected:
-                        iton_bt_is_connected = false;
-                        iton_bt_disconnected();
-                        break;
-                    case bt_enters_connection: // connection ready?
-                        iton_bt_enters_connection_state();
-                        break;
+                                iton_bt_connection_successful();
+                                break;
+                            case bt_entered_pairing:
+                                iton_bt_entered_pairing();
+                                break;
+                            case bt_disconected:
+                                iton_bt_is_connected = false;
 
-                }
+                                #ifdef ITON_BT_ENABLE_ACK
+                                while (readPin(ITON_BT_IRQ_LINE));
+                                writePinHigh(ITON_BT_IRQ_LINE);
+                                chSysLockFromISR();
+                                uint8_t disconnect_ack_buf[] = {0xA6, 0x51, 0x51};
+                                spiStartSendI(&SPID0, 3, &disconnect_ack_buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
+
+                                iton_bt_disconnected();
+                                break;
+                            case bt_enters_connection:
+                                #ifdef ITON_BT_SEND_BT_MODE // only for keychron
+                                while (readPin(ITON_BT_IRQ_LINE));
+                                writePinHigh(ITON_BT_IRQ_LINE);
+                                uint8_t enters_connection_buf[] = {0xA6, 0x51, 0x62};
+                                chSysLockFromISR();
+                                spiStartSendI(&SPID0, 3, &enters_connection_buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
+
+                                #ifdef ITON_BT_ENABLE_DISABLING_SLEEP
+                                while (readPin(ITON_BT_IRQ_LINE));
+                                writePinHigh(ITON_BT_IRQ_LINE);
+                                uint8_t disable_sleep_buf[] = {0xA6, 0x51, 0x65};
+                                chSysLockFromISR();
+                                spiStartSendI(&SPID0, 3, &disable_sleep_buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
+
+                                iton_bt_enters_connection_state();
+                                break;
+
+                        }
+                        break;
+                    }
                 break;
         }
     }
@@ -169,40 +180,36 @@ void iton_bt_data_cb(SPIDriver *spip) {
 void iton_bt_init(void) {
     setPinOutput(ITON_BT_IRQ_LINE);
     setPinInput(ITON_BT_INT_LINE);
-    writePinLow(ITON_BT_IRQ_LINE); // <= or else while loops become infinite loops
+
+    writePinLow(ITON_BT_IRQ_LINE);
+
 #if defined(PAL_USE_CALLBACKS) || defined(PAL_USE_WAIT)
-    chThdCreateStatic(iton_bt_rx_cb_wa, sizeof(iton_bt_rx_cb_wa), NORMALPRIO, iton_bt_rx_thread, NULL);
     palSetLineCallback(ITON_BT_INT_LINE, iton_bt_rx_cb, NULL);
     palEnableLineEvent(ITON_BT_INT_LINE, PAL_EVENT_MODE_BOTH_EDGES);
 #endif
-    print("iton_bt_init\n");
+
     spiStart(&ITON_BT_SPI_PORT, &iton_bt_spicfg);
 }
 
 void iton_bt_send(uint8_t cmd, uint8_t *data, uint8_t len) {
-    while (readPin(ITON_BT_IRQ_LINE)) {
-        uprintf("%s ITON_BT_IRQ_LINE high\n", __FUNCTION__);
-    }
-    uprintf("%s ITON_BT_IRQ_LINE low\n", __FUNCTION__);
+    while (readPin(ITON_BT_IRQ_LINE));
+
 
     writePinHigh(ITON_BT_IRQ_LINE);
-    iton_bt_tx[0] = cmd;
-    memcpy(&iton_bt_tx[1], data, len);
-    spiStartSend(&ITON_BT_SPI_PORT, len + 1, &iton_bt_tx[0]);
+    iton_bt_buffer[0] = cmd;
+    memcpy(&iton_bt_buffer[1], data, len);
+    spiStartSend(&ITON_BT_SPI_PORT, len + 1, &iton_bt_buffer[0]);
 }
 
 void iton_bt_send2(uint8_t cmd, uint8_t b1, uint8_t b2) {
-    while (readPin(ITON_BT_IRQ_LINE)) {
-        uprintf("%s ITON_BT_IRQ_LINE high\n", __FUNCTION__);
-    }
-    uprintf("%s ITON_BT_IRQ_LINE low\n", __FUNCTION__);
+    while (readPin(ITON_BT_IRQ_LINE));
+
     writePinHigh(ITON_BT_IRQ_LINE);
+    iton_bt_buffer[0] = cmd;
+    iton_bt_buffer[1] = b1;
+    iton_bt_buffer[2] = b2;
 
-    iton_bt_tx[0] = cmd;
-    iton_bt_tx[1] = b1;
-    iton_bt_tx[2] = b2;
-
-    spiStartSend(&ITON_BT_SPI_PORT, 3, &iton_bt_tx[0]);
+    spiStartSend(&ITON_BT_SPI_PORT, 3, &iton_bt_buffer[0]);
 }
 
 void iton_bt_send_fn(bool pressed) {

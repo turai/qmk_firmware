@@ -1,4 +1,4 @@
-/* Copyright 2022 Philip Mourdjis <philip.j.m@gmail.com>
+/* Copyright 2022 Dimitris Mantzouranis <d3xter93@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,7 +15,15 @@
  */
 
 #pragma once
-#define WEAR_LEVELING_SN32_EMULATION_PAGE_COUNT 49
-#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1536
-#define VIA_QMK_RGBLIGHT_ENABLE
-#include "config_common.h"
+
+#include "quantum.h"
+
+#if defined(KEYBOARD_keychron_k5_rgb_ansi)
+    #include "ansi.h"
+#elif defined(KEYBOARD_keychron_k5_rgb_iso)
+    #include "iso.h"
+#elif defined(KEYBOARD_keychron_k5_rgb_optical_ansi)
+    #include "optical_ansi.h"
+#elif defined(KEYBOARD_keychron_k5_rgb_optical_iso)
+    #include "optical_iso.h"
+#endif
