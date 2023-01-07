@@ -25,7 +25,11 @@
 #endif
 
 #ifndef ITON_BT_BUFFER_LEN
+#  ifndef ITON_BT_ENABLE_6KRO_HACK
+#    define ITON_BT_BUFFER_LEN 9
+#  else
 #    define ITON_BT_BUFFER_LEN 16
+#  endif
 #endif
 
 /**
@@ -56,10 +60,9 @@ __attribute__((weak)) void iton_bt_enters_connection_state(void) {}
 bool iton_bt_is_connected = false;
 uint8_t iton_bt_led_state = 0x00;
 
-static uint8_t iton_bt_count = 0;
-static uint8_t iton_bt_index = 0;
-static uint8_t iton_bt_buffer[ITON_BT_BUFFER_LEN];
-uint8_t iton_bt_send_kb_last_key = 0x00;
+uint8_t iton_bt_count = 0;
+uint8_t iton_bt_index = 0;
+uint8_t iton_bt_buffer[ITON_BT_BUFFER_LEN];
 
 /**
  * Driver Functions
@@ -132,13 +135,15 @@ void iton_bt_send_consumer(uint16_t data) {
 void iton_bt_send_keyboard(report_keyboard_t *report) {
     // iton module only reads 5 of the keys in the hid report
     // so we send the last key as an nkro report.
+#ifdef ITON_BT_ENABLE_6KRO_HACK
     if (report->keys[5] != iton_bt_send_kb_last_key) {
         uint8_t nkro_report[15] = {0};
         nkro_report[report->keys[5] >> 3] |= (1 << (report->keys[5] & 7));
-        iton_bt_send_kb_last_key = report->keys[5];
+        static uint8_t iton_bt_send_kb_last_key = report->keys[5];
 
         return iton_bt_send(report_nkro, &nkro_report[0], 15);
     }
+#endif
 
     iton_bt_send(report_hid, &report->raw[HID_REPORT_OFFSET], 8);
 }
