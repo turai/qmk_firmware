@@ -119,13 +119,6 @@ static void iton_bt_rx_cb(void *arg) {
                                 chSysUnlockFromISR();
                                 #endif
 
-                                while (readPin(ITON_BT_IRQ_LINE));
-                                writePinHigh(ITON_BT_IRQ_LINE);
-                                uint8_t enters_connection_buf[] = {0xA6, 0x51, 0x62};
-                                chSysLockFromISR();
-                                spiStartSendI(&SPID0, 3, &enters_connection_buf[0]);
-                                chSysUnlockFromISR();
-
                                 iton_bt_connection_successful();
                                 break;
                             case bt_entered_pairing:
@@ -146,6 +139,15 @@ static void iton_bt_rx_cb(void *arg) {
                                 iton_bt_disconnected();
                                 break;
                             case bt_enters_connection:
+                                #ifdef ITON_BT_SEND_BT_MODE // only for keychron
+                                while (readPin(ITON_BT_IRQ_LINE));
+                                writePinHigh(ITON_BT_IRQ_LINE);
+                                uint8_t enters_connection_buf[] = {0xA6, 0x51, 0x62};
+                                chSysLockFromISR();
+                                spiStartSendI(&SPID0, 3, &enters_connection_buf[0]);
+                                chSysUnlockFromISR();
+                                #endif
+
                                 #ifdef ITON_BT_ENABLE_DISABLING_SLEEP
                                 while (readPin(ITON_BT_IRQ_LINE));
                                 writePinHigh(ITON_BT_IRQ_LINE);
