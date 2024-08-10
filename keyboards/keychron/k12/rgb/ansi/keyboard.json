@@ -19,6 +19,10 @@
     "usb": {
         "pid": "0xFE16"
     },
+    "dip_switch": {
+        "enabled": true,
+        "pins": ["B6", "D4"]
+    },
     "matrix_pins": {
         "cols": ["A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15", "B0", "B1", "B2", "B3", "B4", "B5"],
         "rows": ["D11", "D10", "D9", "D8", "D7"]
